@@ -1,20 +1,35 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { getArticleBySlug, getRecommendedArticles, knowledgeArticles } from '@/lib/data';
-import { useUser } from '@/lib/user-context';
-import type { KnowledgeArticle } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+import { TableOfContents } from '@/components/table-of-contents';
+import { Breadcrumbs, ArticleNavigation, getCategoryBreadcrumbs } from '@/components/navigation-components';
+import { 
+  Callout, 
+  ROS1EOLNotice, 
+  PrerequisiteList, 
+  LearningObjectives,
+  MinimalPractice,
+  NextSteps
+} from '@/components/callout';
+import { InlineQuiz, useWrongAnswers } from '@/components/quiz';
+import { knowledgeArticles } from '@/lib/data';
+import { CATEGORY_INFO, type Category } from '@/lib/types';
+import { useUserContext } from '@/lib/user-context';
 
-// 代码块组件
-function CodeBlock({ code, language, description }: { code: string; language: string; description?: string }) {
+interface CodeBlockProps {
+  language: string;
+  code: string;
+  description?: string;
+  expectedOutput?: string;
+  prerequisites?: string[];
+}
+
+function CodeBlock({ language, code, description, expectedOutput, prerequisites }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -25,88 +40,173 @@ function CodeBlock({ code, language, description }: { code: string; language: st
 
   return (
     <div className="my-4">
-      {description && <p className="text-sm text-slate-600 mb-2">{description}</p>}
+      {description && (
+        <p className="text-sm text-slate-600 mb-2">{description}</p>
+      )}
+      {prerequisites && prerequisites.length > 0 && (
+        <div className="text-xs text-slate-500 mb-2">
+          <span className="font-medium">执行前提：</span>
+          {prerequisites.join('、')}
+        </div>
+      )}
       <div className="relative group">
-        <pre className="bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto text-sm">
-          <code className={`language-${language}`}>{code}</code>
-        </pre>
-        <Button
-          size="sm"
-          variant="secondary"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={handleCopy}
-        >
-          {copied ? '已复制' : '复制'}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// 错误项组件
-function ErrorItem({ error, cause, solution }: { error: string; cause: string; solution: string }) {
-  return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-4 my-4">
-      <h4 className="font-semibold text-red-800 mb-2">❌ {error}</h4>
-      <p className="text-sm text-slate-700 mb-1"><strong>原因：</strong>{cause}</p>
-      <p className="text-sm text-slate-700"><strong>解决：</strong>{solution}</p>
-    </div>
-  );
-}
-
-// 目录组件
-function TableOfContents({ content }: { content: KnowledgeArticle['content'] }) {
-  const sections = [
-    { id: 'explanation', title: '概念解释' },
-    { id: 'why', title: '为什么重要' },
-    { id: 'code', title: '代码示例' },
-    { id: 'errors', title: '常见错误' },
-    { id: 'tips', title: '学习技巧' },
-    { id: 'practice', title: '动手练习' },
-    { id: 'sources', title: '官方来源' },
-  ];
-
-  return (
-    <div className="sticky top-20">
-      <h3 className="font-semibold text-slate-900 mb-3">目录</h3>
-      <nav className="space-y-2">
-        {sections.map(section => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            className="block text-sm text-slate-600 hover:text-cyan-600 transition-colors"
+        <div className="absolute right-2 top-2 z-10 flex gap-2">
+          <Badge variant="outline" className="text-xs bg-slate-800 text-slate-300 border-slate-600">
+            {language}
+          </Badge>
+          <button
+            onClick={handleCopy}
+            className="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-200 transition-colors"
+            aria-label="复制代码"
           >
-            {section.title}
-          </a>
-        ))}
-      </nav>
+            {copied ? '已复制' : '复制'}
+          </button>
+        </div>
+        <pre className="overflow-x-auto p-4 bg-slate-900 rounded-lg text-sm">
+          <code className="text-slate-200 font-mono">{code}</code>
+        </pre>
+      </div>
+      {expectedOutput && (
+        <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+          <p className="text-xs font-medium text-green-800 mb-1">预期输出：</p>
+          <pre className="text-xs text-green-700 font-mono whitespace-pre-wrap">{expectedOutput}</pre>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function ArticlePage() {
+export function ArticlePage() {
   const params = useParams();
-  const slug = params.slug as string;
-  const article = getArticleBySlug(slug);
-  const { isFavorite, addFavorite, removeFavorite, addNote, getNotesForArticle, updateReadingProgress } = useUser();
-  const [noteContent, setNoteContent] = useState('');
+  const slug = params?.slug as string;
+  const { favorites, notes, toggleFavorite, addNote, readingProgress, updateProgress } = useUserContext();
+  const { addWrongAnswer } = useWrongAnswers();
+  
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted && article) {
-      updateReadingProgress(article.id, 100);
+  // 查找文章
+  const article = useMemo(() => {
+    return knowledgeArticles.find(a => a.slug === slug);
+  }, [slug]);
+
+  // 相关文章（上一篇/下一篇）
+  const { prevArticle, nextArticle } = useMemo(() => {
+    if (!article) return { prevArticle: null, nextArticle: null };
+    
+    const currentIndex = knowledgeArticles.findIndex(a => a.slug === slug);
+    return {
+      prevArticle: currentIndex > 0 ? knowledgeArticles[currentIndex - 1] : null,
+      nextArticle: currentIndex < knowledgeArticles.length - 1 ? knowledgeArticles[currentIndex + 1] : null,
+    };
+  }, [article, slug]);
+
+  // 从文章内容提取目录项
+  const tocItems = useMemo(() => {
+    if (!article) return [];
+    
+    const items: { id: string; text: string; level: number }[] = [
+      { id: 'objectives', text: '学习目标', level: 2 },
+      { id: 'prerequisites', text: '前置条件', level: 2 },
+      { id: 'explanation', text: '核心概念', level: 2 },
+    ];
+    
+    if (article.content.codeExamples.length > 0) {
+      items.push({ id: 'code-examples', text: '代码示例', level: 2 });
     }
-  }, [mounted, article, updateReadingProgress]);
+    
+    if (article.minimalPractice) {
+      items.push({ id: 'minimal-practice', text: '动手实践', level: 2 });
+    }
+    
+    if (article.quizzes && article.quizzes.length > 0) {
+      items.push({ id: 'quizzes', text: '自测检验', level: 2 });
+    }
+    
+    items.push({ id: 'common-errors', text: '常见错误', level: 2 });
+    items.push({ id: 'tips', text: '学习技巧', level: 2 });
+    items.push({ id: 'next-steps', text: '下一步', level: 2 });
+    items.push({ id: 'sources', text: '参考来源', level: 2 });
+    
+    return items;
+  }, [article]);
+
+  // 收藏状态
+  const isFavorite = useMemo(() => {
+    return favorites.includes(slug);
+  }, [favorites, slug]);
+
+  // 笔记内容
+  const noteContent = useMemo(() => {
+    return notes.find(n => n.articleId === slug)?.content || '';
+  }, [notes, slug]);
+
+  const [localNote, setLocalNote] = useState(noteContent);
+  const [showNoteInput, setShowNoteInput] = useState(false);
+
+  useEffect(() => {
+    setLocalNote(noteContent);
+  }, [noteContent]);
+
+  // 阅读进度
+  useEffect(() => {
+    if (!mounted || !article) return;
+    
+    // 标记开始阅读
+    updateProgress(slug, 0);
+
+    // 滚动进度追踪
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0;
+      updateProgress(slug, progress);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mounted, article, slug, updateProgress]);
+
+  // 处理小测完成
+  const handleQuizComplete = useCallback((quizId: string, correct: boolean, articleId: string) => {
+    if (!correct) {
+      const quiz = article?.quizzes?.find(q => q.id === quizId);
+      if (quiz) {
+        addWrongAnswer({
+          quizId,
+          articleId,
+          question: quiz.question,
+          selectedOption: -1,
+          correctAnswer: quiz.correctAnswer,
+        });
+      }
+    }
+  }, [article, addWrongAnswer]);
+
+  // 保存笔记
+  const handleSaveNote = () => {
+    addNote(slug, localNote);
+    setShowNoteInput(false);
+  };
+
+  if (!mounted) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-8 bg-slate-200 rounded w-1/3 mb-4" />
+        <div className="h-12 bg-slate-200 rounded w-2/3 mb-6" />
+        <div className="h-64 bg-slate-200 rounded" />
+      </div>
+    );
+  }
 
   if (!article) {
     return (
-      <div className="text-center py-20">
+      <div className="text-center py-16">
         <h1 className="text-2xl font-bold text-slate-900 mb-4">文章未找到</h1>
-        <p className="text-slate-600 mb-6">该文章可能已被删除或链接错误</p>
+        <p className="text-slate-600 mb-6">该文章可能已被移动或删除。</p>
         <Link href="/">
           <Button>返回首页</Button>
         </Link>
@@ -114,261 +214,285 @@ export default function ArticlePage() {
     );
   }
 
-  const recommended = getRecommendedArticles(article.slug);
-  const isFav = mounted ? isFavorite(article.id) : false;
-  const notes = mounted ? getNotesForArticle(article.id) : [];
-  const categoryInfo = {
-    'linux-ubuntu': { name: 'Linux/Ubuntu', icon: '🐧' },
-    'ros-basics': { name: 'ROS基础', icon: '🤖' },
-    'communication': { name: '通信机制', icon: '📡' },
-    'tools': { name: '工具', icon: '🔧' },
-    'transform': { name: '坐标与模型', icon: '📐' },
-    'simulation': { name: '仿真', icon: '🎮' },
-    'navigation': { name: '导航', icon: '🧭' },
-    'vision': { name: '视觉', icon: '👁️' },
-    'manipulation': { name: '机械臂', icon: '🦾' },
-    'debug-migration': { name: '调试与迁移', icon: '🐛' },
-  } as const;
-
-  const difficultyColors = {
-    beginner: 'bg-green-100 text-green-700',
-    intermediate: 'bg-yellow-100 text-yellow-700',
-    advanced: 'bg-red-100 text-red-700'
-  };
-
-  const difficultyLabels = {
-    beginner: '入门',
-    intermediate: '进阶',
-    advanced: '高级'
-  };
-
-  const handleToggleFavorite = () => {
-    if (isFav) {
-      removeFavorite(article.id);
-    } else {
-      addFavorite(article.id);
-    }
-  };
-
-  const handleAddNote = () => {
-    if (noteContent.trim()) {
-      addNote(article.id, noteContent.trim());
-      setNoteContent('');
-    }
-  };
+  const categoryInfo = CATEGORY_INFO[article.category];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      {/* 主内容区 */}
-      <div className="lg:col-span-3 space-y-6">
-        {/* 文章头部 */}
-        <header className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/category/${article.category}`} className="text-sm text-cyan-600 hover:underline">
-              {categoryInfo[article.category]?.icon} {categoryInfo[article.category]?.name}
-            </Link>
-            <span className="text-slate-400">•</span>
-            <Badge className={difficultyColors[article.difficulty]}>
-              {difficultyLabels[article.difficulty]}
-            </Badge>
-            <span className="text-slate-400">•</span>
-            <span className="text-sm text-slate-500">{article.readingTime} 分钟阅读</span>
-          </div>
-          
-          <h1 className="text-3xl font-bold text-slate-900">{article.title}</h1>
-          <p className="text-lg text-slate-600">{article.summary}</p>
-          
-          <div className="flex flex-wrap gap-2">
-            {article.tags.map(tag => (
-              <Badge key={tag} variant="outline">{tag}</Badge>
-            ))}
-          </div>
+    <div className="max-w-none">
+      {/* 面包屑 */}
+      <Breadcrumbs items={getCategoryBreadcrumbs(article.category, article.title)} />
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant={isFav ? 'default' : 'outline'}
-              size="sm"
-              onClick={handleToggleFavorite}
-            >
-              {isFav ? '★ 已收藏' : '☆ 收藏'}
-            </Button>
+      {/* 文章头部 */}
+      <header className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Badge variant="outline" className="text-cyan-700 border-cyan-300">
+            {categoryInfo?.icon} {categoryInfo?.name}
+          </Badge>
+          <Badge variant="secondary" className="text-xs">
+            {article.readingTime} 分钟阅读
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            ROS1 Noetic
+          </Badge>
+        </div>
+        
+        <h1 className="text-3xl font-bold text-slate-900 mb-4">
+          {article.title}
+        </h1>
+        
+        <p className="text-lg text-slate-600 leading-relaxed">
+          {article.summary}
+        </p>
+
+        {/* 操作按钮 */}
+        <div className="flex items-center gap-3 mt-4">
+          <Button
+            variant={isFavorite ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleFavorite(slug)}
+          >
+            {isFavorite ? '★ 已收藏' : '☆ 收藏'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNoteInput(!showNoteInput)}
+          >
+            📝 笔记
+          </Button>
+        </div>
+
+        {/* 笔记输入 */}
+        {showNoteInput && (
+          <div className="mt-4 p-4 bg-slate-50 rounded-lg">
+            <textarea
+              value={localNote}
+              onChange={(e) => setLocalNote(e.target.value)}
+              placeholder="在这里记录你的学习笔记..."
+              className="w-full h-24 p-2 border border-slate-200 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+            <div className="flex justify-end gap-2 mt-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowNoteInput(false)}>
+                取消
+              </Button>
+              <Button size="sm" onClick={handleSaveNote}>
+                保存笔记
+              </Button>
+            </div>
           </div>
-        </header>
-
-        <Separator />
-
-        {/* 先修知识 */}
-        {article.prerequisites.length > 0 && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">📌 先修知识</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-700">
-                {article.prerequisites.map(prereq => {
-                  const prereqArticle = knowledgeArticles.find(a => a.id === prereq);
-                  return (
-                    <li key={prereq}>
-                      {prereqArticle ? (
-                        <Link href={`/article/${prereqArticle.slug}`} className="text-cyan-600 hover:underline">
-                          {prereqArticle.title}
-                        </Link>
-                      ) : prereq}
-                    </li>
-                  );
-                })}
-              </ul>
-            </CardContent>
-          </Card>
         )}
+      </header>
 
-        {/* 概念解释 */}
-        <section id="explanation" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">📖 概念解释</h2>
-          <div className="prose prose-slate max-w-none">
-            <div className="whitespace-pre-wrap text-slate-700">{article.content.explanation}</div>
-          </div>
+      {/* EOL 提示 */}
+      <ROS1EOLNotice />
+
+      {/* 文章正文 */}
+      <article className="prose prose-slate max-w-none">
+        {/* 学习目标 */}
+        <section id="objectives">
+          <LearningObjectives objectives={article.learningObjectives ?? []} />
         </section>
 
-        {/* 为什么重要 */}
-        <section id="why" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">💡 为什么重要</h2>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-slate-700">{article.content.whyImportant}</p>
+        {/* 前置条件 */}
+        <section id="prerequisites">
+          {article.prerequisites.length > 0 && (
+            <PrerequisiteList items={article.prerequisites} />
+          )}
+        </section>
+
+        {/* 核心概念 */}
+        <section id="explanation">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">核心概念</h2>
+          
+          <Callout type="info" title="为什么重要">
+            {article.content.whyImportant}
+          </Callout>
+
+          <div className="mt-6 text-slate-700 leading-relaxed">
+            <div className="whitespace-pre-wrap">{article.content.explanation}</div>
           </div>
         </section>
 
         {/* 代码示例 */}
-        <section id="code" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">💻 代码示例</h2>
-          {article.content.codeExamples.map((example, index) => (
-            <div key={index}>
+        {article.content.codeExamples.length > 0 && (
+          <section id="code-examples">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">代码示例</h2>
+            {article.content.codeExamples.map((example, index) => (
               <CodeBlock
-                code={example.code}
+                key={index}
                 language={example.language}
+                code={example.code}
                 description={example.description}
+                expectedOutput={example.expectedOutput}
+                prerequisites={example.prerequisites}
               />
-              {example.expectedOutput && (
-                <p className="text-sm text-slate-500 mt-2">
-                  <strong>预期输出：</strong>{example.expectedOutput}
-                </p>
-              )}
-            </div>
-          ))}
-        </section>
+            ))}
+          </section>
+        )}
+
+        {/* 最小实践 */}
+        {article.minimalPractice && (
+          <section id="minimal-practice">
+            <MinimalPractice
+              title={article.minimalPractice.title}
+              duration={article.minimalPractice.duration}
+              steps={article.minimalPractice.steps.map(s => s.description)}
+              verificationCommand={article.minimalPractice.steps.find(s => s.verification)?.verification}
+            />
+          </section>
+        )}
+
+        {/* 自测题 */}
+        {article.quizzes && article.quizzes.length > 0 && (
+          <section id="quizzes">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">自测检验</h2>
+            <p className="text-slate-600 mb-4">
+              完成以下问题检验学习效果，错题会自动保存到错题本。
+            </p>
+            {article.quizzes.map((quiz, index) => (
+              <InlineQuiz
+                key={quiz.id}
+                quiz={quiz}
+                onComplete={(correct) => handleQuizComplete(quiz.id, correct, article.slug)}
+              />
+            ))}
+          </section>
+        )}
 
         {/* 常见错误 */}
-        <section id="errors" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">⚠️ 常见错误</h2>
+        <section id="common-errors">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">常见错误</h2>
           {article.content.commonErrors.map((error, index) => (
-            <ErrorItem
-              key={index}
-              error={error.error}
-              cause={error.cause}
-              solution={error.solution}
-            />
+            <Callout key={index} type="warning" title={error.error}>
+              <p className="mb-2"><strong>原因：</strong>{error.cause}</p>
+              <p><strong>解决：</strong>{error.solution}</p>
+            </Callout>
           ))}
         </section>
 
         {/* 学习技巧 */}
-        <section id="tips" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">✨ 学习技巧</h2>
+        <section id="tips">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">学习技巧</h2>
           <ul className="space-y-2">
             {article.content.tips.map((tip, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-green-500">✓</span>
-                <span className="text-slate-700">{tip}</span>
+              <li key={index} className="flex items-start gap-2 text-slate-700">
+                <span className="text-cyan-500">💡</span>
+                <span>{tip}</span>
               </li>
             ))}
           </ul>
         </section>
 
-        {/* 动手练习 */}
-        <section id="practice" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">🔬 动手练习</h2>
-          <ol className="list-decimal list-inside space-y-2">
-            {article.content.practice.map((practice, index) => (
-              <li key={index} className="text-slate-700">{practice}</li>
-            ))}
-          </ol>
-        </section>
-
-        {/* 官方来源 */}
-        <section id="sources" className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">🔗 官方来源</h2>
-          <ul className="space-y-2">
-            {article.officialSources.map((source, index) => (
-              <li key={index}>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-600 hover:underline"
+        {/* 下一步 */}
+        <section id="next-steps">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">下一步</h2>
+          {article.nextSteps && article.nextSteps.length > 0 ? (
+            <NextSteps steps={article.nextSteps} />
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-4">
+              {prevArticle && (
+                <Link
+                  href={`/article/${prevArticle.slug}`}
+                  className="flex-1 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
                 >
-                  {source.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4">
-            <p className="text-sm text-slate-500">
-              <strong>适用版本：</strong>{article.applicableVersions.join(', ')}
-            </p>
-          </div>
-        </section>
-
-        {/* 个人笔记 */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">📝 我的笔记</h2>
-          <div className="space-y-3">
-            <Textarea
-              placeholder="记录你的学习笔记..."
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              className="min-h-24"
-            />
-            <Button onClick={handleAddNote}>保存笔记</Button>
-          </div>
-          {notes.length > 0 && (
-            <div className="space-y-2 mt-4">
-              {notes.map(note => (
-                <div key={note.id} className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-sm text-slate-700">{note.content}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {new Date(note.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+                  <p className="text-xs text-slate-500 mb-1">上一篇</p>
+                  <p className="font-medium text-slate-900">{prevArticle.title}</p>
+                </Link>
+              )}
+              {nextArticle && (
+                <Link
+                  href={`/article/${nextArticle.slug}`}
+                  className="flex-1 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors text-right"
+                >
+                  <p className="text-xs text-slate-500 mb-1">下一篇</p>
+                  <p className="font-medium text-slate-900">{nextArticle.title}</p>
+                </Link>
+              )}
             </div>
           )}
         </section>
 
-        {/* 推荐文章 */}
-        {recommended.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-900">📚 相关文章</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recommended.map(rec => (
-                <Link key={rec.id} href={`/article/${rec.slug}`}>
-                  <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm line-clamp-2">{rec.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-slate-500">{rec.readingTime} 分钟</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+        {/* 参考来源 */}
+        <section id="sources">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">参考来源</h2>
+          <div className="space-y-2">
+            {article.officialSources.map((source, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <Badge variant="outline" className="text-xs flex-shrink-0">
+                  {source.type === 'official' ? '官方' : 
+                   source.type === 'wiki' ? 'Wiki' : 
+                   source.type === 'community' ? '社区' : '教程'}
+                </Badge>
+                <div>
+                  <a 
+                    href={source.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-cyan-700 hover:underline"
+                  >
+                    {source.title}
+                  </a>
+                  {source.description && (
+                    <p className="text-sm text-slate-500">{source.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* 版本信息 */}
+          <div className="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
+            <p><strong>适用版本：</strong>{article.applicableVersions.join('、')}</p>
+            <p><strong>最后核验：</strong>{article.lastVerified || article.updatedAt}</p>
+          </div>
+        </section>
+      </article>
 
-      {/* 右侧目录 */}
-      <aside className="hidden lg:block">
-        <TableOfContents content={article.content} />
-      </aside>
+      {/* 文章导航 */}
+      <ArticleNavigation
+        prevArticle={prevArticle ? { slug: prevArticle.slug, title: prevArticle.title } : null}
+        nextArticle={nextArticle ? { slug: nextArticle.slug, title: nextArticle.title } : null}
+      />
     </div>
   );
+}
+
+// 用于布局的右侧目录
+export function ArticleTOC() {
+  const params = useParams();
+  const slug = params?.slug as string;
+  
+  const article = useMemo(() => {
+    return knowledgeArticles.find(a => a.slug === slug);
+  }, [slug]);
+
+  const tocItems = useMemo(() => {
+    if (!article) return [];
+    
+    const items: { id: string; text: string; level: number }[] = [
+      { id: 'objectives', text: '学习目标', level: 2 },
+      { id: 'prerequisites', text: '前置条件', level: 2 },
+      { id: 'explanation', text: '核心概念', level: 2 },
+    ];
+    
+    if (article.content.codeExamples.length > 0) {
+      items.push({ id: 'code-examples', text: '代码示例', level: 2 });
+    }
+    
+    if (article.minimalPractice) {
+      items.push({ id: 'minimal-practice', text: '动手实践', level: 2 });
+    }
+    
+    if (article.quizzes && article.quizzes.length > 0) {
+      items.push({ id: 'quizzes', text: '自测检验', level: 2 });
+    }
+    
+    items.push({ id: 'common-errors', text: '常见错误', level: 2 });
+    items.push({ id: 'tips', text: '学习技巧', level: 2 });
+    items.push({ id: 'next-steps', text: '下一步', level: 2 });
+    items.push({ id: 'sources', text: '参考来源', level: 2 });
+    
+    return items;
+  }, [article]);
+
+  return <TableOfContents items={tocItems} />;
 }

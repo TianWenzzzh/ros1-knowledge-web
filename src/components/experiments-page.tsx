@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { experiments } from '@/lib/experiments';
-import { useUser } from '@/lib/user-context';
+import { useUserContext } from '@/lib/user-context';
 
 const difficultyColors = {
   beginner: 'bg-green-100 text-green-700',
@@ -21,8 +21,7 @@ const difficultyLabels = {
 };
 
 export default function ExperimentsPage() {
-  const { isExperimentCompleted, getStats } = useUser();
-  const stats = getStats();
+  const { isExperimentCompleted } = useUserContext();
   const completedCount = experiments.filter(e => isExperimentCompleted(e.id)).length;
 
   return (
