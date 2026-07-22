@@ -217,6 +217,14 @@ export function HomePage() {
       tags: ['命令', '速查'],
       color: 'cyan',
     },
+    {
+      icon: '💻',
+      title: '补编程基础',
+      description: '无需先学完整门语言，20-40分钟补齐本节所需语法',
+      href: '/article/python-for-ros-intro',
+      tags: ['Python', 'C++', '最小必要'],
+      color: 'blue',
+    },
   ];
 
   return (

@@ -3880,13 +3880,13 @@ if __name__ == '__main__':
     title: 'C语言入门：从编译到运行',
     category: 'programming-basics',
     tags: ['C语言', '编译', 'gcc', '基础'],
-    summary: '理解C语言的编译过程，掌握gcc基本用法，为理解ROS底层和硬件接口打下基础。',
+    summary: '【可选补充】理解C语言的编译过程和基础语法，为理解ROS底层驱动和嵌入式开发打下基础。注意：C语言不是ROS主线必修，仅在涉及底层/硬件时需要。',
     difficulty: 'beginner',
     readingTime: 25,
     prerequisites: [],
     introHook: {
-      problem: '你想理解ROS底层是如何工作的，但看到C代码就头疼，不理解编译过程',
-      scenario: '就像做菜需要了解食材特性，理解ROS底层需要C语言基础，尤其是编译、内存和指针'
+      problem: '你想理解ROS底层驱动或嵌入式开发，但看到C代码就头疼，不理解编译过程',
+      scenario: 'C语言是ROS底层的基石，但仅在做嵌入式开发、驱动编写或协议解析时需要。如果你只做上层ROS应用，可以跳过本节。'
     },
     learningObjectives: [
       '理解C语言的编译过程：预处理、编译、汇编、链接',
@@ -3977,8 +3977,8 @@ if __name__ == '__main__':
       }
     ],
     reviewSummary: 'C语言编译四步骤：预处理(#include, #define展开)、编译(转为汇编)、汇编(转为机器码)、链接(合并目标文件)。常用gcc选项：-c只编译不链接，-Wall显示警告，-o指定输出文件。',
-    nextLesson: '掌握C语言编译后，下一步学习变量类型和内存管理。',
-    nextLessonLink: 'c-memory-basics',
+    nextLesson: 'C语言是理解ROS底层的可选补充。继续ROS主线学习，推荐直接进入C++ for ROS或Python for ROS。',
+    nextLessonLink: 'cpp-for-ros-intro',
     sources: [
       { title: 'GCC Manual', url: 'https://gcc.gnu.org/onlinedocs/', sourceType: 'official', version: 'GCC 9.4', verifiedAt: '2024-01-01' },
       { title: 'C语言编译过程详解', url: 'https://akaedu.github.io/book/ch02.html', sourceType: 'tutorial', version: 'C99', verifiedAt: '2024-01-01' }
@@ -4037,7 +4037,7 @@ ls -l hello*`,
       { title: 'GCC Documentation', url: 'https://gcc.gnu.org/onlinedocs/' }
     ],
     applicableVersions: ['Ubuntu 20.04'],
-    relatedArticles: ['c-memory-basics', 'cpp-for-ros-intro'],
+    relatedArticles: ['cpp-for-ros-intro', 'ros-architecture'],
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01'
   },
@@ -4539,8 +4539,10 @@ if __name__ == '__main__':
     relatedArticles: ['cpp-for-ros-intro', 'python-for-ros-intro', 'ros-topic'],
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01'
-  }
+  },
+
 ];
+
 // 导出辅助函数
 export function getArticleBySlug(slug: string): KnowledgeArticle | undefined {
   return knowledgeArticles.find(article => article.slug === slug);
