@@ -161,10 +161,10 @@ export function SiteLayout({ children, rightSidebar }: SiteLayoutProps) {
                 错误排查
               </Link>
               <Link 
-                href="/learning-methods"
+                href="/methods"
                 className={cn(
                   "px-3 py-1.5 text-sm rounded-lg transition-colors",
-                  pathname === "/learning-methods" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  pathname === "/methods" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 )}
               >
                 学习方法

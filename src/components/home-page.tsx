@@ -330,7 +330,7 @@ export function HomePage() {
             <div className="text-2xl mb-2">🔧</div>
             <div className="text-sm font-medium">错误排查</div>
           </Link>
-          <Link href="/learning-methods" className="p-4 rounded-lg bg-white border border-slate-200 hover:border-cyan-300 text-center">
+          <Link href="/methods" className="p-4 rounded-lg bg-white border border-slate-200 hover:border-cyan-300 text-center">
             <div className="text-2xl mb-2">📚</div>
             <div className="text-sm font-medium">学习方法</div>
           </Link>
