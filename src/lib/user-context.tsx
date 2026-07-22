@@ -18,9 +18,11 @@ interface UserContextType {
   notes: UserNote[];
   readingProgress: Record<string, ReadingProgress>;
   completedExperiments: string[];
+  experiments: string[]; // 别名，与 completedExperiments 相同
   toggleFavorite: (articleId: string) => void;
   addNote: (articleId: string, content: string) => void;
   updateProgress: (articleId: string, progress: number) => void;
+  updateReadingProgress: (articleId: string, progress: number) => void; // 别名
   toggleExperiment: (experimentId: string) => void;
   isExperimentCompleted: (experimentId: string) => boolean;
 }
@@ -153,9 +155,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     notes: userData.notes,
     readingProgress: userData.readingProgress,
     completedExperiments: userData.completedExperiments,
+    experiments: userData.completedExperiments, // 别名
     toggleFavorite,
     addNote,
     updateProgress,
+    updateReadingProgress: updateProgress, // 别名
     toggleExperiment,
     isExperimentCompleted
   };

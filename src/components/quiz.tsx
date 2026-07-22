@@ -235,3 +235,6 @@ export function WrongAnswersList({ wrongAnswers, onRemove, onClear }: WrongAnswe
     </div>
   );
 }
+
+// 别名导出
+export const Quiz = InlineQuiz;

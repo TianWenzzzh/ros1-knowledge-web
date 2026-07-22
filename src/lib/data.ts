@@ -2891,3 +2891,24 @@ export function getRecommendedArticles(currentSlug: string, limit: number = 3): 
        current.relatedArticles.includes(a.slug)))
     .slice(0, limit);
 }
+
+// 分类信息
+import { CATEGORY_INFO, type Category } from './types';
+
+export { CATEGORY_INFO };
+
+export const categories = Object.entries(CATEGORY_INFO).map(([id, info]) => ({
+  id,
+  name: info.name,
+  icon: info.icon,
+  description: info.description,
+  order: info.order
+}));
+
+// 获取相关文章
+export function getRelatedArticles(article: KnowledgeArticle): KnowledgeArticle[] {
+  return knowledgeArticles.filter(a => 
+    a.slug !== article.slug && 
+    article.relatedArticles.includes(a.slug)
+  ).slice(0, 3);
+}

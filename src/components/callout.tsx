@@ -244,3 +244,12 @@ export function NextSteps({ steps }: NextStepsProps) {
     </div>
   );
 }
+
+// 别名导出
+export const EOLNotice = ROS1EOLNotice;
+export const InfoCallout = ({ children, title }: { children: React.ReactNode; title?: string }) => (
+  <Callout type="info" title={title}>{children}</Callout>
+);
+export const WarningCallout = ({ children, title }: { children: React.ReactNode; title?: string }) => (
+  <Callout type="warning" title={title}>{children}</Callout>
+);
