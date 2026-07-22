@@ -4,14 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import type { QuizItem } from '@/lib/types';
 
-export interface QuizItem {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-}
+export type { QuizItem };
 
 interface InlineQuizProps {
   quiz: QuizItem;
@@ -25,7 +20,10 @@ export function InlineQuiz({ quiz, onComplete }: InlineQuizProps) {
 
   const handleSubmit = () => {
     if (selected === null) return;
-    const correct = selected === quiz.correctAnswer;
+    // 支持数字索引和字符串答案
+    const correct = typeof quiz.correctAnswer === 'number' 
+      ? selected === quiz.correctAnswer
+      : quiz.options[selected] === quiz.correctAnswer;
     setIsCorrect(correct);
     setSubmitted(true);
     onComplete?.(correct);

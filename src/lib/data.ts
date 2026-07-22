@@ -3223,6 +3223,655 @@ cat ~/.ros/log/latest/rosout.log | grep ERROR`,
     relatedArticles: ['ros-architecture', 'ros-topic', 'rosbag'],
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01'
+  },
+  // ==================== Publisher 与 Subscriber 编程 ====================
+  {
+    id: 'ros-publisher-subscriber',
+    slug: 'ros-publisher-subscriber',
+    title: 'Publisher 与 Subscriber 编程',
+    category: 'ros-comm',
+    tags: ['Publisher', 'Subscriber', 'rospy', '话题通信', 'Python'],
+    summary: '学习如何编写 ROS Publisher 和 Subscriber 节点，掌握话题通信的核心编程技能。',
+    difficulty: 'intermediate',
+    readingTime: 25,
+    prerequisites: ['ros-topic', 'ros-message'],
+    introHook: {
+      problem: '你已经理解了话题和消息的概念，但不知道如何编写代码让节点真正发布和接收数据',
+      scenario: '你的机器人需要读取传感器数据并发布到话题，同时订阅其他节点的控制命令——这需要你亲手写 Publisher 和 Subscriber'
+    },
+    learningObjectives: [
+      '能创建包含 Publisher 的 ROS Python 节点',
+      '能创建包含 Subscriber 的 ROS Python 节点',
+      '能正确定义和自定义 ROS 消息类型',
+      '能配置 package.xml 和 CMakeLists.txt',
+      '能使用 catkin_make 构建并运行自定义节点'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否理解话题是节点间通信的"命名通道"？', hint: '话题名如 /chatter，节点通过它找到彼此' },
+        { question: '你是否知道消息类型定义了数据的结构？', hint: '如 std_msgs/String 包含一个 string data 字段' },
+        { question: '你是否熟悉 Python 的基本语法？', hint: 'import、class、def、while 循环' }
+      ]
+    },
+    intuition: {
+      analogy: 'Publisher 就像一个电台主播，不停向空中发送广播信号（消息）。Subscriber 就像收音机，调到正确的频率（话题名）就能收到信号。你可以有多个收音机同时收一个频道（多订阅者），也可以有多个主播在同一个频道广播（多发布者）。',
+      boundaries: '类比局限：电台广播是单向的，ROS 话题也是单向的。如果需要双向请求-响应，要用 Service；如果需要可中断的长任务，要用 Action。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: '为什么需要手写 Publisher/Subscriber' },
+      { time: '02:00', title: '创建包', description: 'catkin_create_pkg 创建包含依赖的包' },
+      { time: '05:00', title: '消息定义', description: '自定义 .msg 文件和编译' },
+      { time: '08:00', title: 'Publisher', description: '编写发布者节点代码' },
+      { time: '14:00', title: 'Subscriber', description: '编写订阅者节点代码' },
+      { time: '20:00', title: '构建运行', description: 'catkin_make、source、rosrun' },
+      { time: '23:00', title: '实践验收', description: '完成练习并检查结果' }
+    ],
+    minimalPractice: {
+      terminal: '终端1: roscore\n终端2: 运行talker\n终端3: 运行listener',
+      currentDirectory: '~/catkin_ws/src/beginner_tutorials',
+      source: 'source /opt/ros/noetic/setup.bash && source ~/catkin_ws/devel/setup.bash',
+      commands: [
+        { step: '创建工作空间和包', command: 'mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/src && catkin_create_pkg beginner_tutorials std_msgs rospy roscpp', explanation: '创建包含 rospy 依赖的新包' },
+        { step: '创建 scripts 目录', command: 'cd beginner_tutorials && mkdir scripts && cd scripts', explanation: 'Python 脚本放在 scripts 目录' },
+        { step: '编写 Publisher', command: '创建 talker.py（见下方代码）', explanation: '发布者节点发布 String 消息到 chatter 话题' },
+        { step: '编写 Subscriber', command: '创建 listener.py（见下方代码）', explanation: '订阅者节点接收 chatter 话题消息' },
+        { step: '添加执行权限', command: 'chmod +x talker.py listener.py', explanation: 'Python 脚本需要可执行权限' },
+        { step: '构建工作空间', command: 'cd ~/catkin_ws && catkin_make', explanation: '编译工作空间' },
+        { step: '运行节点', command: 'rosrun beginner_tutorials talker.py\nrosrun beginner_tutorials listener.py', explanation: '分别在两个终端运行' }
+      ],
+      expectedOutput: 'talker 输出: "hello world x.xxxxxx"\nlistener 输出: "I heard hello world x.xxxxxx"'
+    },
+    diagram: {
+      type: 'flow',
+      data: {
+        nodes: [
+          { id: 'talker', label: 'Talker Node\n(Publisher)', type: 'node' },
+          { id: 'chatter', label: '/chatter\n(std_msgs/String)', type: 'topic' },
+          { id: 'listener', label: 'Listener Node\n(Subscriber)', type: 'node' }
+        ],
+        edges: [
+          { from: 'talker', to: 'chatter', label: 'publish' },
+          { from: 'chatter', to: 'listener', label: 'subscribe' }
+        ]
+      }
+    },
+    misconceptions: [
+      {
+        misconception: '忘记 spin() 或 spinOnce()',
+        rootCause: '不理解 ROS 需要一个主循环来处理回调',
+        fix: '在 Subscriber 程序中必须调用 rospy.spin() 或 rospy.spinOnce()'
+      },
+      {
+        misconception: '消息类型不匹配',
+        rootCause: '发布和订阅使用了不同的消息类型',
+        fix: '确保 Publisher 和 Subscriber 使用相同的消息类型，如 String'
+      },
+      {
+        misconception: '忘记给 Python 脚本添加执行权限',
+        rootCause: 'Linux 下文件默认没有执行权限',
+        fix: '运行 chmod +x script.py'
+      },
+      {
+        misconception: '构建后忘记 source',
+        rootCause: '不理解 catkin_make 后需要 source devel/setup.bash',
+        fix: '每次构建后都要 source ~/catkin_ws/devel/setup.bash'
+      }
+    ],
+    practice: {
+      basic: [
+        { task: '修改发布频率', hint: '修改 rospy.Rate(10) 的参数', verifyCommand: 'rostopic hz /chatter' },
+        { task: '修改消息内容', hint: '修改 talker.py 中的消息字符串', verifyCommand: 'rostopic echo /chatter' }
+      ],
+      intermediate: [
+        { task: '创建自定义消息类型', hint: '创建 msg/Num.msg 文件，修改 CMakeLists.txt', verifyCommand: 'rosmsg show beginner_tutorials/Num' },
+        { task: '发布自定义消息', hint: '修改 Publisher 使用自定义消息', verifyCommand: 'rostopic echo /chatter' }
+      ],
+      advanced: [
+        { task: '多话题发布订阅', hint: '一个节点同时发布和订阅不同话题', verifyCommand: 'rqt_graph' },
+        { task: '回调队列优化', hint: '使用 rospy.Timer 或多线程处理高频消息', verifyCommand: '检查 CPU 占用' }
+      ]
+    },
+    pauseAndThink: [
+      {
+        question: '为什么 Publisher 不需要 spin() 而 Subscriber 需要？',
+        answer: 'Publisher 只是发送数据，不等待响应。Subscriber 需要持续监听话题，spin() 让 ROS 进入循环等待回调。'
+      },
+      {
+        question: '如果两个 Publisher 发布到同一话题，Subscriber 会收到什么？',
+        answer: 'Subscriber 会收到两个 Publisher 的消息，按时间顺序交替。这就是 ROS 的多对多通信模型。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'pubsub-q1',
+        type: 'concept',
+        question: 'rospy.Publisher 的 queue_size 参数是什么作用？',
+        options: ['控制消息最大长度', '控制发布频率', '控制订阅者数量', '控制消息优先级'],
+        correctAnswer: 0,
+        explanation: 'queue_size 决定了当订阅者处理慢时，队列中最多保留多少条消息。'
+      },
+      {
+        id: 'pubsub-q2',
+        type: 'output',
+        question: '运行 talker.py 后，rostopic echo /chatter 显示什么？',
+        options: ['无输出', 'data: "hello world"', 'hello world', 'ERROR'],
+        correctAnswer: 1,
+        explanation: 'rostopic echo 显示完整的消息结构，包括字段名 data。'
+      },
+      {
+        id: 'pubsub-q3',
+        type: 'debug',
+        question: '节点运行但 rostopic list 不显示话题，可能原因？',
+        options: ['忘记 source', 'queue_size 太小', 'roscore 未启动', '节点名错误'],
+        correctAnswer: 2,
+        explanation: '没有 roscore，节点无法注册话题到 Master，因此话题列表为空。'
+      },
+      {
+        id: 'pubsub-q4',
+        type: 'sequence',
+        question: '正确构建并运行节点的顺序？',
+        options: ['catkin_make -> source -> rosrun', 'rosrun -> catkin_make -> source', 'source -> catkin_make -> rosrun', 'catkin_make -> rosrun -> source'],
+        correctAnswer: 0,
+        explanation: '先构建工作空间，然后 source 环境，最后运行节点。'
+      }
+    ],
+    reviewSummary: {
+      keyPoints: ['Publisher 发布消息到话题', 'Subscriber 订阅话题接收消息', '必须 spin() 处理回调', '构建后 source'],
+      mustKnowCommands: ['catkin_create_pkg', 'catkin_make', 'rosrun', 'rostopic echo'],
+      reviewQuestions: ['如何创建一个发布速度命令的 Publisher？', 'Subscriber 的回调函数参数是什么？']
+    },
+    nextLesson: {
+      title: 'Service 请求-响应通信',
+      link: 'ros-service',
+      reason: '当你需要同步的请求-响应通信时，使用 Service 而不是 Topic。'
+    },
+    sources: [
+      { title: 'ROS Wiki: Writing Publisher/Subscriber (Python)', url: 'http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29', sourceType: 'official', version: 'ROS1 Noetic', verifiedAt: '2024-01-01' },
+      { title: 'ROS Wiki: rospy Overview', url: 'http://wiki.ros.org/rospy', sourceType: 'official', version: 'ROS1 Noetic', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: `Publisher 和 Subscriber 是 ROS 话题通信的核心编程接口。
+
+**Publisher（发布者）**
+- 在节点中创建 Publisher 对象
+- 指定话题名和消息类型
+- 定期调用 publish() 发送消息
+
+**Subscriber（订阅者）**
+- 在节点中创建 Subscriber 对象
+- 指定话题名、消息类型和回调函数
+- 调用 spin() 进入循环等待消息
+
+**代码示例 (rospy)**
+
+\`\`\`python
+# talker.py - Publisher
+#!/usr/bin/env python
+import rospy
+from std_msgs.msg import String
+
+def publisher():
+    rospy.init_node('talker')
+    pub = rospy.Publisher('chatter', String, queue_size=10)
+    rate = rospy.Rate(10)  # 10hz
+    
+    while not rospy.is_shutdown():
+        msg = String()
+        msg.data = "hello world %s" % rospy.get_time()
+        pub.publish(msg)
+        rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        publisher()
+    except rospy.ROSInterruptException:
+        pass
+\`\`\`
+
+\`\`\`python
+# listener.py - Subscriber
+#!/usr/bin/env python
+import rospy
+from std_msgs.msg import String
+
+def callback(data):
+    rospy.loginfo("I heard %s", data.data)
+
+def subscriber():
+    rospy.init_node('listener')
+    rospy.Subscriber('chatter', String, callback)
+    rospy.spin()
+
+if __name__ == '__main__':
+    subscriber()
+\`\`\`
+
+**package.xml 关键配置**
+\`\`\`xml
+<build_depend>rospy</build_depend>
+<build_depend>std_msgs</build_depend>
+<exec_depend>rospy</exec_depend>
+<exec_depend>std_msgs</exec_depend>
+\`\`\``,
+      whyImportant: 'Publisher/Subscriber 是 ROS 最基础的通信方式，几乎所有 ROS 节点都会用到。',
+      codeExamples: [
+        {
+          language: 'python',
+          code: `# 完整的 Publisher 示例
+#!/usr/bin/env python
+import rospy
+from std_msgs.msg import String
+
+def main():
+    # 初始化节点
+    rospy.init_node('my_publisher')
+    
+    # 创建 Publisher
+    # 参数: 话题名, 消息类型, 队列大小
+    pub = rospy.Publisher('chatter', String, queue_size=10)
+    
+    # 设置发布频率
+    rate = rospy.Rate(10)  # 10 Hz
+    
+    while not rospy.is_shutdown():
+        # 创建消息
+        msg = String()
+        msg.data = "Hello ROS!"
+        
+        # 发布消息
+        pub.publish(msg)
+        rospy.loginfo("Published: %s", msg.data)
+        
+        # 按频率休眠
+        rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass`,
+          description: '完整的 Publisher 节点',
+          expectedOutput: '每秒发布10条消息'
+        },
+        {
+          language: 'python',
+          code: `# 完整的 Subscriber 示例
+#!/usr/bin/env python
+import rospy
+from std_msgs.msg import String
+
+# 回调函数 - 收到消息时自动调用
+def callback(msg):
+    rospy.loginfo("Received: %s", msg.data)
+
+def main():
+    # 初始化节点
+    rospy.init_node('my_subscriber')
+    
+    # 创建 Subscriber
+    # 参数: 话题名, 消息类型, 回调函数
+    rospy.Subscriber('chatter', String, callback)
+    
+    # 进入循环等待消息
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()`,
+          description: '完整的 Subscriber 节点',
+          expectedOutput: '收到消息时打印内容'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'ModuleNotFoundError: No module named rospy',
+          cause: '忘记 source ROS 环境',
+          solution: 'source /opt/ros/noetic/setup.bash'
+        },
+        {
+          error: '话题无数据',
+          cause: '忘记调用 spin() 或发布频率为 0',
+          solution: '检查 rospy.spin() 和 Rate()'
+        },
+        {
+          error: 'Permission denied',
+          cause: 'Python 脚本没有执行权限',
+          solution: 'chmod +x script.py'
+        }
+      ],
+      tips: [
+        '使用 rospy.loginfo() 而不是 print()',
+        'queue_size 建议设为 10',
+        '回调函数不要阻塞太久'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'ROS Wiki: Writing Publisher/Subscriber', url: 'http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29' }
+    ],
+    applicableVersions: ['ROS Noetic'],
+    relatedArticles: ['ros-topic', 'ros-message', 'ros-service'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  },
+  // ==================== Action 长任务通信 ====================
+  {
+    id: 'ros-action',
+    slug: 'ros-action',
+    title: 'Action 长任务通信',
+    category: 'ros-comm',
+    tags: ['Action', 'actionlib', '长任务', '反馈', '目标'],
+    summary: '学习 ROS Action 机制，处理需要长时间执行并可反馈进度的任务。',
+    difficulty: 'intermediate',
+    readingTime: 30,
+    prerequisites: ['ros-topic', 'ros-service', 'ros-publisher-subscriber'],
+    introHook: {
+      problem: '你的机器人需要执行一个耗时任务（如导航到目标点），Service 会阻塞等待，Topic 无法知道任务进度',
+      scenario: '导航节点发送"前往坐标(5,3)"的请求，需要在移动过程中显示进度，并能随时取消任务——这正是 Action 的应用场景'
+    },
+    learningObjectives: [
+      '理解 Action 与 Topic、Service 的区别',
+      '能定义 .action 文件包含 Goal/Result/Feedback',
+      '能使用 SimpleActionServer 创建 Action 服务器',
+      '能使用 SimpleActionClient 发送目标并接收反馈',
+      '能正确配置 package.xml 和 CMakeLists.txt'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否理解 Service 是同步请求-响应模式？', hint: '客户端发送请求后阻塞等待响应' },
+        { question: '你是否熟悉 Topic 的异步发布-订阅模式？', hint: '发布者不等待订阅者' },
+        { question: '你是否知道什么是回调函数？', hint: '函数作为参数传入，在特定事件发生时调用' }
+      ]
+    },
+    intuition: {
+      analogy: 'Action 就像外卖配送：你下单（Goal）后，骑手开始送餐（执行），APP 实时显示进度（Feedback），送到后通知你（Result）。你可以随时取消订单。这比打电话问"送到了吗"（Service）高效，也比看群消息（Topic）精确。',
+      boundaries: '类比局限：Action 只能用于有明确开始和结束的任务。对于持续不断的数据流（如摄像头图像），还是用 Topic。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: '为什么需要 Action 机制' },
+      { time: '03:00', title: '概念对比', description: 'Action vs Topic vs Service' },
+      { time: '06:00', title: 'Action定义', description: '创建 .action 文件' },
+      { time: '10:00', title: '服务器', description: '编写 Action Server' },
+      { time: '17:00', title: '客户端', description: '编写 Action Client' },
+      { time: '24:00', title: '构建运行', description: 'catkin_make, rosrun' },
+      { time: '28:00', title: '实践验收', description: '完成练习并检查结果' }
+    ],
+    minimalPractice: {
+      terminal: '终端1: roscore\n终端2: 运行action_server\n终端3: 运行action_client',
+      currentDirectory: '~/catkin_ws/src/action_tutorials',
+      source: 'source /opt/ros/noetic/setup.bash && source ~/catkin_ws/devel/setup.bash',
+      commands: [
+        { step: '创建包', command: 'cd ~/catkin_ws/src && catkin_create_pkg action_tutorials actionlib rospy', explanation: '添加 actionlib 依赖' },
+        { step: '创建 action 目录', command: 'cd action_tutorials && mkdir -p action', explanation: 'Action 定义文件放在 action 目录' },
+        { step: '创建 .action 文件', command: '创建 action/Count.action（见下方）', explanation: '定义 Goal/Result/Feedback' },
+        { step: '配置 CMakeLists.txt', command: '添加 actionlib 依赖和 action 文件生成', explanation: '见下方配置' },
+        { step: '构建', command: 'cd ~/catkin_ws && catkin_make', explanation: '生成 Action 消息类型' },
+        { step: '运行服务器', command: 'rosrun action_tutorials count_server.py', explanation: '启动 Action 服务器' },
+        { step: '运行客户端', command: 'rosrun action_tutorials count_client.py', explanation: '发送目标' }
+      ],
+      expectedOutput: '客户端: Goal sent\n服务器: Counting 1...10\n客户端: Feedback: 50%\n客户端: Result: 10'
+    },
+    diagram: {
+      type: 'flow',
+      data: {
+        nodes: [
+          { id: 'client', label: 'Action Client', type: 'node' },
+          { id: 'goal', label: 'Goal Topic\n(count/goal)', type: 'topic' },
+          { id: 'server', label: 'Action Server', type: 'node' },
+          { id: 'feedback', label: 'Feedback Topic\n(count/feedback)', type: 'topic' },
+          { id: 'result', label: 'Result Topic\n(count/result)', type: 'topic' }
+        ],
+        edges: [
+          { from: 'client', to: 'goal', label: 'send goal' },
+          { from: 'goal', to: 'server', label: 'receive' },
+          { from: 'server', to: 'feedback', label: 'publish' },
+          { from: 'feedback', to: 'client', label: 'receive' },
+          { from: 'server', to: 'result', label: 'publish' },
+          { from: 'result', to: 'client', label: 'receive' }
+        ]
+      }
+    },
+    misconceptions: [
+      {
+        misconception: 'Action 就是 Topic',
+        rootCause: '不理解 Action 内部用多个 Topic 实现',
+        fix: 'Action 是高级抽象，内部使用 5 个 Topic (goal, cancel, status, feedback, result)'
+      },
+      {
+        misconception: '忘记 set_succeeded',
+        rootCause: '不理解 Action 必须明确标记完成',
+        fix: '在任务完成时调用 set_succeeded()，失败时调用 set_aborted()'
+      },
+      {
+        misconception: '阻塞在 send_goal',
+        rootCause: '不理解 send_goal 是异步的',
+        fix: '使用 wait_for_result() 阻塞，或使用回调函数异步处理'
+      },
+      {
+        misconception: '没有配置 action 文件生成',
+        rootCause: '忘记在 CMakeLists.txt 添加 action 生成',
+        fix: '添加 add_action_files() 和 generate_messages()'
+      }
+    ],
+    practice: {
+      basic: [
+        { task: '修改计数上限', hint: '修改 Goal 中的 count 字段', verifyCommand: '观察输出计数范围' },
+        { task: '修改反馈频率', hint: '修改 rate.sleep() 频率', verifyCommand: '观察反馈间隔' }
+      ],
+      intermediate: [
+        { task: '添加取消功能', hint: '使用 client.cancel_goal()', verifyCommand: '发送目标后按 Ctrl+C' },
+        { task: '添加抢占处理', hint: '检查 is_preempt_requested()', verifyCommand: '发送新目标观察旧目标状态' }
+      ],
+      advanced: [
+        { task: '多目标管理', hint: '使用 SimpleActionClient 的多目标队列', verifyCommand: '同时发送多个目标' },
+        { task: '动态重新规划', hint: '收到新目标时取消当前目标', verifyCommand: '连续发送不同目标' }
+      ]
+    },
+    pauseAndThink: [
+      {
+        question: '为什么 Action 不像 Service 那样阻塞？',
+        answer: 'Action 设计为异步执行。客户端发送目标后立即返回，通过 Feedback 话题接收进度，通过 Result 话题接收结果。'
+      },
+      {
+        question: '一个 Action Server 能同时处理多个目标吗？',
+        answer: 'SimpleActionServer 只能处理一个目标，新目标会抢占旧目标。如需多目标，使用 ActionServer 直接类。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'action-q1',
+        type: 'concept',
+        question: 'Action 与 Service 的主要区别？',
+        options: ['Action 异步，Service 同步', 'Action 同步，Service 异步', '两者都是同步', '两者都是异步'],
+        correctAnswer: 0,
+        explanation: 'Service 客户端阻塞等待响应；Action 客户端发送目标后立即返回，异步接收反馈和结果。'
+      },
+      {
+        id: 'action-q2',
+        type: 'output',
+        question: 'Action Server 调用 set_succeeded 后客户端收到什么？',
+        options: ['Feedback', 'Result', 'Goal', 'Status'],
+        correctAnswer: 1,
+        explanation: 'set_succeeded 表示任务成功完成，客户端收到 Result。'
+      },
+      {
+        id: 'action-q3',
+        type: 'debug',
+        question: '客户端卡在 wait_for_server，可能原因？',
+        options: ['服务器未启动', 'Goal 格式错误', 'Feedback 未发布', 'Result 未收到'],
+        correctAnswer: 0,
+        explanation: 'wait_for_server 阻塞等待服务器就绪，如果服务器未启动会一直等待。'
+      },
+      {
+        id: 'action-q4',
+        type: 'sequence',
+        question: 'Action 通信的正确顺序？',
+        options: ['Goal→Feedback→Result', 'Result→Goal→Feedback', 'Feedback→Goal→Result', 'Goal→Result→Feedback'],
+        correctAnswer: 0,
+        explanation: '先发送目标，执行过程中持续反馈，最后返回结果。'
+      }
+    ],
+    reviewSummary: {
+      keyPoints: ['Action 用于长任务', 'Goal/Result/Feedback 三要素', '异步执行可取消', '使用 actionlib 库'],
+      mustKnowCommands: ['catkin_create_pkg ... actionlib', 'add_action_files()', 'SimpleActionServer', 'SimpleActionClient'],
+      reviewQuestions: ['如何定义一个带进度反馈的 Action？', '如何处理用户取消请求？']
+    },
+    nextLesson: {
+      title: 'TF 坐标变换',
+      link: 'tf-transform',
+      reason: '机器人各部件坐标不同，Action 执行过程中需要了解坐标系变换。'
+    },
+    sources: [
+      { title: 'ROS Wiki: actionlib', url: 'http://wiki.ros.org/actionlib', sourceType: 'official', version: 'ROS1 Noetic', verifiedAt: '2024-01-01' },
+      { title: 'ROS Wiki: Action Description', url: 'http://wiki.ros.org/actionlib/DetailedDescription', sourceType: 'official', version: 'ROS1 Noetic', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: `Action 是 ROS 提供的长任务通信机制，结合了 Topic 的异步特性和 Service 的请求-响应模式。
+
+**核心概念**
+- **Goal（目标）**：客户端发送的任务请求
+- **Feedback（反馈）**：执行过程中持续发送的进度信息
+- **Result（结果）**：任务完成后的最终结果
+
+**Action vs Topic vs Service**
+
+| 特性 | Topic | Service | Action |
+|------|-------|---------|--------|
+| 通信模式 | 发布-订阅 | 请求-响应 | 目标-反馈-结果 |
+| 同步性 | 异步 | 同步阻塞 | 异步非阻塞 |
+| 适用场景 | 持续数据流 | 快速查询 | 长任务 |
+| 取消能力 | 无 | 无 | 有 |
+| 进度反馈 | 无 | 无 | 有 |
+
+**定义 Action 文件**
+\`\`\`
+# Count.action
+# Goal - 发送的目标
+uint32 count_to
+---
+# Result - 最终结果
+uint32 final_count
+---
+# Feedback - 执行过程中的反馈
+float32 percentage
+\`\`\`
+
+**Action Server (Python)**
+\`\`\`python
+#!/usr/bin/env python
+import rospy
+import actionlib
+from actionlib_msgs.msg import GoalStatus
+from action_tutorials.msg import CountAction, CountGoal, CountResult, CountFeedback
+
+class CountServer:
+    def __init__(self):
+        self.server = actionlib.SimpleActionServer('count', CountAction, self.execute, False)
+        self.server.start()
+    
+    def execute(self, goal):
+        rate = rospy.Rate(1)
+        count = 0
+        
+        while count < goal.count_to:
+            if self.server.is_preempt_requested():
+                self.server.set_preempted()
+                return
+            
+            count += 1
+            feedback = CountFeedback()
+            feedback.percentage = count / float(goal.count_to) * 100
+            self.server.publish_feedback(feedback)
+            rate.sleep()
+        
+        result = CountResult()
+        result.final_count = count
+        self.server.set_succeeded(result)
+
+if __name__ == '__main__':
+    rospy.init_node('count_server')
+    server = CountServer()
+    rospy.spin()
+\`\`\`
+
+**CMakeLists.txt 配置**
+\`\`\`cmake
+find_package(catkin REQUIRED COMPONENTS actionlib roscpp rospy std_msgs actionlib_msgs)
+
+add_action_files(
+  DIRECTORY action
+  FILES Count.action
+)
+
+generate_messages(
+  DEPENDENCIES actionlib_msgs std_msgs
+)
+
+catkin_package()
+\`\`\``,
+      whyImportant: 'Action 是处理长任务的标准方式，导航、机械臂规划等都使用 Action。',
+      codeExamples: [
+        {
+          language: 'python',
+          code: `# Action Client 示例
+#!/usr/bin/env python
+import rospy
+import actionlib
+from action_tutorials.msg import CountAction, CountGoal
+
+def feedback_cb(feedback):
+    rospy.loginfo("Progress: %.1f%%", feedback.percentage)
+
+def main():
+    rospy.init_node('count_client')
+    client = actionlib.SimpleActionClient('count', CountAction)
+    client.wait_for_server()
+    
+    goal = CountGoal()
+    goal.count_to = 10
+    
+    client.send_goal(goal, feedback_cb=feedback_cb)
+    client.wait_for_result()
+    
+    result = client.get_result()
+    rospy.loginfo("Result: %d", result.final_count)
+
+if __name__ == '__main__':
+    main()`,
+          description: 'Action Client 发送目标并接收反馈',
+          expectedOutput: '显示进度和最终结果'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'ModuleNotFoundError: actionlib',
+          cause: '忘记添加 actionlib 依赖',
+          solution: '在 package.xml 添加 <depend>actionlib</depend>'
+        },
+        {
+          error: 'Action file not found',
+          cause: '.action 文件位置错误',
+          solution: '确保放在 package/action/ 目录'
+        },
+        {
+          error: 'Client hangs on wait_for_server',
+          cause: '服务器未启动或名称不匹配',
+          solution: '检查服务器是否运行，话题名是否一致'
+        }
+      ],
+      tips: [
+        '使用 SimpleActionServer 简化开发',
+        'Feedback 不要发布太频繁',
+        '处理 preempt_requested 支持取消'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'ROS Wiki: actionlib', url: 'http://wiki.ros.org/actionlib' }
+    ],
+    applicableVersions: ['ROS Noetic'],
+    relatedArticles: ['ros-service', 'ros-topic', 'ros-publisher-subscriber'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   }
 ];
 

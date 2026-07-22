@@ -4,6 +4,7 @@
 export type Category =
   | 'linux-ubuntu'
   | 'ros-basics'
+  | 'ros-comm'
   | 'communication'
   | 'tools'
   | 'transform'
@@ -16,20 +17,22 @@ export type Category =
 export const CATEGORY_INFO: Record<Category, { name: string; icon: string; description: string; order: number }> = {
   'linux-ubuntu': { name: 'Linux/Ubuntu', icon: '🐧', description: 'Linux系统基础与Ubuntu环境配置', order: 1 },
   'ros-basics': { name: 'ROS基础', icon: '🤖', description: 'ROS核心概念与基础操作', order: 2 },
-  'communication': { name: '通信机制', icon: '📡', description: '话题、服务、动作等通信方式', order: 3 },
-  'tools': { name: '工具', icon: '🔧', description: 'ROS开发与调试工具', order: 4 },
-  'transform': { name: '坐标与模型', icon: '📐', description: 'TF变换与机器人模型描述', order: 5 },
-  'simulation': { name: '仿真', icon: '🎮', description: 'Gazebo仿真环境与配置', order: 6 },
-  'navigation': { name: '导航', icon: '🧭', description: 'SLAM建图与自主导航', order: 7 },
-  'vision': { name: '视觉', icon: '👁️', description: '摄像头与图像处理', order: 8 },
-  'manipulation': { name: '机械臂', icon: '🦾', description: 'MoveIt运动规划与控制', order: 9 },
-  'debug-migration': { name: '调试与迁移', icon: '🐛', description: '调试技巧与ROS2迁移', order: 10 },
+  'ros-comm': { name: '通信编程', icon: '📡', description: 'Publisher/Subscriber/Service/Action通信编程', order: 3 },
+  'communication': { name: '通信机制', icon: '📡', description: '话题、服务、动作等通信方式', order: 4 },
+  'tools': { name: '工具', icon: '🔧', description: 'ROS开发与调试工具', order: 5 },
+  'transform': { name: '坐标与模型', icon: '📐', description: 'TF变换与机器人模型描述', order: 6 },
+  'simulation': { name: '仿真', icon: '🎮', description: 'Gazebo仿真环境与配置', order: 7 },
+  'navigation': { name: '导航', icon: '🧭', description: 'SLAM建图与自主导航', order: 8 },
+  'vision': { name: '视觉', icon: '👁️', description: '摄像头与图像处理', order: 9 },
+  'manipulation': { name: '机械臂', icon: '🦾', description: 'MoveIt运动规划与控制', order: 10 },
+  'debug-migration': { name: '调试与迁移', icon: '🐛', description: '调试技巧与ROS2迁移', order: 11 },
 };
 
 // 分类列表（用于导出）
 export const categories: Category[] = [
   'linux-ubuntu',
   'ros-basics',
+  'ros-comm',
   'communication',
   'tools',
   'transform',
@@ -105,8 +108,36 @@ export interface TimelineItem {
   description?: string;
 }
 
+// 数据流图节点
+export interface DiagramNode {
+  id: string;
+  label: string;
+  type: 'node' | 'topic' | 'service' | 'param' | 'action';
+}
+
+// 数据流图边
+export interface DiagramEdge {
+  from: string;
+  to: string;
+  label?: string;
+}
+
+// 数据流图数据
+export interface DiagramData {
+  nodes: DiagramNode[];
+  edges: DiagramEdge[];
+}
+
+// 图表定义
+export interface Diagram {
+  type: 'flow' | 'sequence' | 'component';
+  title?: string;
+  data: DiagramData;
+}
+
 // 实践步骤
 export interface PracticeStep {
+  step?: string;
   command: string;
   explanation?: string;
 }
@@ -138,18 +169,23 @@ export interface PauseAndThink {
 // 测验项
 export interface QuizItem {
   id: string;
+  type?: 'concept' | 'output' | 'debug' | 'sequence';
   question: string;
   options: string[];
-  correctAnswer: number;
+  correctAnswer: number | string; // 支持索引或答案文本
   explanation: string;
 }
 
-// 三级练习
-export interface PracticeLevel {
+// 三级练习项
+export interface PracticeTask {
   task: string;
-  hints: string[];
+  hint?: string;
+  hints?: string[];
   verifyCommand: string;
 }
+
+// 三级练习（支持对象格式和数组格式）
+export type PracticeLevel = PracticeTask | PracticeTask[];
 
 // 练习集合
 export interface PracticeSet {
@@ -157,6 +193,20 @@ export interface PracticeSet {
   intermediate: PracticeLevel;
   advanced: PracticeLevel;
 }
+
+// 复习总结（支持字符串和对象格式）
+export type ReviewSummary = string | {
+  keyPoints: string[];
+  mustKnowCommands: string[];
+  reviewQuestions: string[];
+};
+
+// 下一课链接（支持字符串和对象格式）
+export type NextLesson = string | {
+  title: string;
+  link: string;
+  reason?: string;
+};
 
 // 学习目标
 export interface LearningObjective {
@@ -185,6 +235,7 @@ export interface KnowledgeArticle {
   intuition?: IntuitionModel;
   timeline?: TimelineItem[];
   minimalPractice?: MinimalPractice;
+  diagram?: Diagram;
   dataFlow?: {
     type: 'mermaid' | 'text' | 'ascii';
     content: string;
@@ -194,8 +245,8 @@ export interface KnowledgeArticle {
   practice?: PracticeSet;
   pauseAndThink?: PauseAndThink[];
   quiz?: QuizItem[];
-  reviewSummary?: string;
-  nextLesson?: string;
+  reviewSummary?: ReviewSummary;
+  nextLesson?: NextLesson;
   nextLessonLink?: string;
   sources?: ArticleSource[];
   

@@ -44,6 +44,7 @@ const difficultyLabels = {
 const categoryColors: Record<Category, string> = {
   'linux-ubuntu': 'border-blue-400',
   'ros-basics': 'border-cyan-400',
+  'ros-comm': 'border-teal-400',
   'communication': 'border-purple-400',
   'tools': 'border-orange-400',
   'transform': 'border-pink-400',
