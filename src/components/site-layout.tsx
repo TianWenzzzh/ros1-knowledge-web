@@ -1,34 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Category, CATEGORY_INFO, type KnowledgeArticle } from '@/lib/types';
-import { knowledgeArticles } from '@/lib/data';
-import { SearchPanel, SearchTrigger as SearchTriggerButton } from '@/components/search-panel';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { SearchPanel } from '@/components/search-panel';
+import { knowledgeArticles, getRelatedArticles } from '@/lib/data';
+import { CATEGORY_INFO, type Category, type KnowledgeArticle } from '@/lib/types';
+import type { ReactNode } from 'react';
 
-const NAV_ITEMS = [
-  { href: '/', label: '知识首页', icon: '🏠' },
-  { href: '/knowledge-map', label: 'ROS1知识地图', icon: '🗺️' },
-  { href: '/learning-methods', label: '学习方法', icon: '📚' },
-  { href: '/experiments', label: '动手实验', icon: '🔬' },
-  { href: '/commands', label: '命令速查', icon: '⚡' },
-  { href: '/troubleshoot', label: '错误排查', icon: '🔧' },
-  { href: '/favorites', label: '收藏与笔记', icon: '⭐' },
-  { href: '/my-learning', label: '我的学习', icon: '👤' },
-];
-
-// 按ROS官方教程顺序组织的学习路径
+// 学习路径顺序（按 ROS 官方教程依赖顺序）
 const LEARNING_PATH_ORDER = [
   'linux-ubuntu',
   'ros-basics',
+  'ros-comm',
   'communication',
   'tools',
   'transform',
@@ -39,71 +26,29 @@ const LEARNING_PATH_ORDER = [
   'debug-migration',
 ];
 
+// 按分类分组文章
+const groupedArticles = knowledgeArticles.reduce((acc, article) => {
+  const cat = article.category;
+  if (!acc[cat]) acc[cat] = [];
+  acc[cat].push(article);
+  return acc;
+}, {} as Record<string, KnowledgeArticle[]>);
+
 interface SiteLayoutProps {
-  children: React.ReactNode;
-  rightSidebar?: React.ReactNode;
-  leftSidebarCollapsed?: boolean;
+  children: ReactNode;
+  rightSidebar?: ReactNode;
 }
 
-// 按学习路径组织文章
-function organizeArticlesByPath() {
-  const grouped: Record<string, KnowledgeArticle[]> = {};
-  
-  knowledgeArticles.forEach(article => {
-    if (!grouped[article.category]) {
-      grouped[article.category] = [];
-    }
-    grouped[article.category].push(article);
-  });
-
-  return grouped;
-}
-
-export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: SiteLayoutProps) {
+export function SiteLayout({ children, rightSidebar }: SiteLayoutProps) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileTocOpen, setMobileTocOpen] = useState(false);
-
-  // 从 localStorage 加载折叠状态
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const stored = localStorage.getItem('ros1-expanded-categories');
-      if (stored) {
-        setExpandedCategories(new Set(JSON.parse(stored)));
-      } else {
-        // 默认展开当前文章所在分类
-        if (pathname?.startsWith('/article/')) {
-          const slug = pathname.replace('/article/', '');
-          const article = knowledgeArticles.find(a => a.slug === slug);
-          if (article) {
-            setExpandedCategories(new Set([article.category]));
-          }
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, [pathname]);
-
-  // 保存折叠状态
-  const toggleCategory = useCallback((category: string) => {
-    setExpandedCategories(prev => {
-      const updated = new Set(prev);
-      if (updated.has(category)) {
-        updated.delete(category);
-      } else {
-        updated.add(category);
-      }
-      localStorage.setItem('ros1-expanded-categories', JSON.stringify([...updated]));
-      return updated;
-    });
-  }, []);
-
-  // Ctrl/Cmd+K 快捷键
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  
+  const isArticlePage = pathname?.startsWith('/article/');
+  
+  // 键盘快捷键
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -112,123 +57,175 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
       }
       if (e.key === 'Escape') {
         setSearchOpen(false);
+        setMobileMenuOpen(false);
       }
     };
+    
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  // 跳转到正文（可访问性）
-  const handleSkipToContent = () => {
-    const main = document.getElementById('main-content');
-    if (main) {
-      main.focus();
-      main.scrollIntoView();
-    }
-  };
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="animate-pulse bg-slate-100 h-16" />
-        <div className="flex">
-          <div className="hidden lg:block w-64 animate-pulse bg-slate-100 h-screen" />
-          <div className="flex-1 p-8">
-            <div className="animate-pulse bg-slate-100 h-96 rounded-lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const isArticlePage = pathname?.startsWith('/article/');
-  const groupedArticles = organizeArticlesByPath();
-
+  
+  const toggleCategory = useCallback((category: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  }, []);
+  
   return (
-    <div className="min-h-screen bg-white">
-      {/* 跳转到正文链接（可访问性） */}
-      <a
-        href="#main-content"
-        onClick={handleSkipToContent}
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-cyan-600 focus:text-white focus:rounded-lg"
+    <div className="min-h-screen bg-white" style={{ isolation: 'isolate' }}>
+      {/* Header - 固定在顶部 */}
+      <header 
+        className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 z-40"
+        style={{ backgroundColor: '#ffffff' }}
       >
-        跳转到正文
-      </a>
-
-      {/* 顶部导航栏 - 完全不透明 */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white">
-        <div className="flex h-14 items-center justify-between px-4 lg:px-6 lg:pl-[272px]">
-          {/* Logo + 移动端菜单 */}
-          <div className="flex items-center gap-3">
+        <div className="h-full flex items-center px-4 lg:px-6">
+          {/* Logo 区域 - 与侧栏宽度对齐 */}
+          <div className="hidden lg:flex items-center w-64 flex-shrink-0">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl">🤖</span>
+              <span className="font-bold text-slate-900">ROS1 知识库</span>
+            </Link>
+          </div>
+          
+          {/* 移动端 Logo */}
+          <div className="lg:hidden flex items-center">
             {isArticlePage && (
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-                aria-label="打开导航菜单"
+                className="p-2 -ml-2 text-slate-600 hover:text-slate-900"
+                aria-label="打开导航"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
             )}
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-xl" role="img" aria-label="机器人">🤖</span>
-              <span className="hidden sm:inline text-lg font-bold text-slate-900">ROS1 知识库</span>
+            <Link href="/" className="ml-2 flex items-center gap-2">
+              <span className="text-xl">🤖</span>
+              <span className="font-bold text-slate-900">ROS1 知识库</span>
             </Link>
           </div>
-
-          {/* 搜索入口 */}
-          <div className="flex-1 flex justify-center px-4 max-w-xl">
-            <SearchTriggerButton onClick={() => setSearchOpen(true)} />
-          </div>
-
-          {/* 桌面端导航 */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="主导航">
-            {NAV_ITEMS.slice(0, 6).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
+          
+          {/* 主导航区域 */}
+          <div className="flex-1 flex items-center justify-between lg:justify-end gap-4 lg:ml-64 xl:mr-56">
+            <nav className="hidden lg:flex items-center gap-1">
+              <Link 
+                href="/" 
                 className={cn(
-                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                  pathname === item.href
-                    ? 'bg-cyan-50 text-cyan-700'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname === "/" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 )}
               >
-                {item.label}
+                首页
               </Link>
-            ))}
-          </nav>
-
-          {/* 用户菜单 */}
-          <div className="flex items-center gap-2">
-            <Link
-              href="/favorites"
-              className="hidden sm:flex p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-              aria-label="收藏与笔记"
+              <Link 
+                href="/knowledge-map"
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname === "/knowledge-map" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                )}
+              >
+                知识地图
+              </Link>
+              <Link 
+                href="/experiments"
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname?.startsWith("/experiments") ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                )}
+              >
+                实验
+              </Link>
+              <Link 
+                href="/commands"
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname === "/commands" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                )}
+              >
+                命令速查
+              </Link>
+              <Link 
+                href="/troubleshoot"
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname === "/troubleshoot" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                )}
+              >
+                错误排查
+              </Link>
+              <Link 
+                href="/learning-methods"
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                  pathname === "/learning-methods" ? "bg-cyan-50 text-cyan-700" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                )}
+              >
+                学习方法
+              </Link>
+            </nav>
+            
+            {/* 搜索按钮 */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              aria-label="搜索"
             >
-              ⭐
-            </Link>
-            <Link
-              href="/my-learning"
-              className="hidden sm:flex p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-              aria-label="我的学习"
-            >
-              👤
-            </Link>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="hidden sm:inline">搜索</span>
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-slate-200 rounded">
+                <span>⌘</span>K
+              </kbd>
+            </button>
+            
+            {/* 用户菜单 */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/favorites"
+                className="hidden sm:flex p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                aria-label="收藏与笔记"
+              >
+                ⭐
+              </Link>
+              <Link
+                href="/my-learning"
+                className="hidden sm:flex p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                aria-label="我的学习"
+              >
+                👤
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* 三栏布局 */}
-      <div className="flex">
-        {/* 左侧导航栏 - 桌面端固定显示，完全不透明 */}
+      {/* 主体布局 - 使用 CSS Grid，响应式处理 */}
+      <div 
+        className="pt-14 min-h-screen"
+      >
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-[256px_minmax(0,1fr)] xl:grid-cols-[256px_minmax(0,1fr)_224px]"
+        >
+        {/* 左侧导航栏 - 桌面端 Grid 列，不使用 fixed */}
         <aside 
           className={cn(
-            "hidden lg:block fixed left-0 top-14 bottom-0 w-64 border-r border-slate-200 bg-slate-50 overflow-y-auto z-30",
-            "transition-transform duration-200",
-            leftSidebarCollapsed && "-translate-x-full"
+            "hidden lg:block sticky top-14 h-[calc(100vh-3.5rem)] border-r border-slate-200 overflow-y-auto",
+            leftSidebarCollapsed && "hidden"
           )}
+          style={{ 
+            backgroundColor: '#f8fafc',
+            width: '256px',
+            minWidth: '256px',
+            maxWidth: '256px',
+          }}
           aria-label="文章导航"
         >
           <nav className="p-4">
@@ -303,8 +300,13 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
         {/* 移动端侧栏抽屉 */}
         {isArticlePage && (
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetContent side="left" className="w-72 p-0">
-              <div className="h-full overflow-y-auto p-4">
+            <SheetContent 
+              side="left" 
+              className="w-72 p-0"
+              style={{ backgroundColor: '#ffffff' }}
+            >
+              <SheetTitle className="sr-only">文章导航</SheetTitle>
+              <div className="h-full overflow-y-auto p-4" style={{ backgroundColor: '#ffffff' }}>
                 <h2 className="text-sm font-semibold text-slate-900 mb-4">文章导航</h2>
                 {LEARNING_PATH_ORDER.map((categoryKey) => {
                   const articles = groupedArticles[categoryKey];
@@ -356,29 +358,31 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
           </Sheet>
         )}
 
-        {/* 主内容区 - 桌面端避让左侧栏 */}
+        {/* 主内容区 - Grid 第二列 */}
         <main 
           id="main-content" 
           tabIndex={-1}
-          className={cn(
-            "flex-1 min-w-0 lg:ml-64",
-            isArticlePage && "xl:mr-56"
-          )}
+          className="min-w-0 overflow-x-hidden"
         >
           <div className={cn(
-            "mx-auto",
             isArticlePage 
               ? "max-w-4xl px-4 lg:px-8 py-6 lg:py-8" 
-              : "container px-4 lg:px-6 py-6 lg:py-8"
+              : "px-4 lg:px-6 py-6 lg:py-8"
           )}>
             {children}
           </div>
         </main>
 
-        {/* 右侧目录栏 - 仅文章页显示，完全不透明 */}
+        {/* 右侧目录栏 - 仅文章页显示，Grid 第三列 */}
         {isArticlePage && rightSidebar && (
           <aside 
-            className="hidden xl:block fixed right-0 top-14 bottom-0 w-56 border-l border-slate-200 bg-white overflow-y-auto z-30"
+            className="hidden xl:block sticky top-14 h-[calc(100vh-3.5rem)] border-l border-slate-200 overflow-y-auto"
+            style={{ 
+              backgroundColor: '#ffffff',
+              width: '224px',
+              minWidth: '224px',
+              maxWidth: '224px',
+            }}
             aria-label="本页目录"
           >
             <div className="p-4">
@@ -392,6 +396,7 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
       {/* 搜索面板 */}
       <SearchPanel isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
+    </div>
   );
 }
 
@@ -400,16 +405,34 @@ export function SearchTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full max-w-md flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-600 transition-colors"
-      aria-label="搜索知识库"
+      className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+      aria-label="搜索"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
-      <span className="flex-1 text-left">搜索 ROS1 知识...</span>
-      <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-white rounded border border-slate-300">
+      <span className="hidden sm:inline">搜索</span>
+      <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-slate-200 rounded">
         <span>⌘</span>K
       </kbd>
     </button>
   );
+}
+
+// 导出分类颜色
+export function getCategoryColor(category: Category): string {
+  const colors: Record<Category, string> = {
+    'linux-ubuntu': 'bg-amber-100 text-amber-800',
+    'ros-basics': 'bg-cyan-100 text-cyan-800',
+    'ros-comm': 'bg-cyan-100 text-cyan-800',
+    'communication': 'bg-blue-100 text-blue-800',
+    'tools': 'bg-purple-100 text-purple-800',
+    'transform': 'bg-green-100 text-green-800',
+    'simulation': 'bg-indigo-100 text-indigo-800',
+    'navigation': 'bg-rose-100 text-rose-800',
+    'vision': 'bg-pink-100 text-pink-800',
+    'manipulation': 'bg-orange-100 text-orange-800',
+    'debug-migration': 'bg-slate-100 text-slate-800',
+  };
+  return colors[category] || 'bg-slate-100 text-slate-800';
 }
