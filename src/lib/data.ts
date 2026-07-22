@@ -3872,9 +3872,675 @@ if __name__ == '__main__':
     relatedArticles: ['ros-service', 'ros-topic', 'ros-publisher-subscriber'],
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01'
+  },
+  // ==================== 编程基础 - C语言 ====================
+  {
+    id: 'c-basics-intro',
+    slug: 'c-basics-intro',
+    title: 'C语言入门：从编译到运行',
+    category: 'programming-basics',
+    tags: ['C语言', '编译', 'gcc', '基础'],
+    summary: '理解C语言的编译过程，掌握gcc基本用法，为理解ROS底层和硬件接口打下基础。',
+    difficulty: 'beginner',
+    readingTime: 25,
+    prerequisites: [],
+    introHook: {
+      problem: '你想理解ROS底层是如何工作的，但看到C代码就头疼，不理解编译过程',
+      scenario: '就像做菜需要了解食材特性，理解ROS底层需要C语言基础，尤其是编译、内存和指针'
+    },
+    learningObjectives: [
+      '理解C语言的编译过程：预处理、编译、汇编、链接',
+      '能使用gcc编译简单的C程序',
+      '理解源文件、目标文件、可执行文件的区别',
+      '能排查简单的编译错误和链接错误'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否知道什么是源代码和可执行文件？', hint: '源代码是人类可读的文本，可执行文件是机器可运行的程序' },
+        { question: '你是否使用过终端命令？', hint: 'gcc编译需要在终端中执行命令' }
+      ]
+    },
+    intuition: {
+      analogy: '编译就像翻译：C代码是中文，机器码是机器语言。gcc是翻译官，把你的代码翻译成机器能理解的指令。',
+      boundaries: '类比局限：编译不仅是翻译，还会检查语法错误、优化代码、链接库函数。不同编译器可能有不同行为。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: '为什么ROS开发者需要了解C语言' },
+      { time: '03:00', title: '编译过程', description: '预处理、编译、汇编、链接四步骤' },
+      { time: '08:00', title: 'gcc使用', description: 'gcc基本命令和常用选项' },
+      { time: '12:00', title: '实践编译', description: '编写并编译第一个C程序' },
+      { time: '18:00', title: '错误排查', description: '常见编译错误和解决方法' },
+      { time: '23:00', title: '总结', description: '回顾要点并布置练习' }
+    ],
+    minimalPractice: {
+      terminal: '终端（Ubuntu 20.04）',
+      currentDirectory: '~（用户主目录）',
+      source: '无需 source',
+      commands: [
+        { command: 'mkdir -p ~/c_test && cd ~/c_test', explanation: '创建测试目录' },
+        { command: 'cat > hello.c << "EOF"\n#include <stdio.h>\nint main() {\n    printf("Hello, ROS!\\n");\n    return 0;\n}\nEOF', explanation: '创建简单的C程序' },
+        { command: 'gcc hello.c -o hello', explanation: '编译C程序为可执行文件' },
+        { command: './hello', explanation: '运行编译后的程序' },
+        { command: 'gcc -E hello.c -o hello.i', explanation: '只执行预处理步骤' }
+      ],
+      expectedOutput: 'Hello, ROS!'
+    },
+    misconceptions: [
+      {
+        misconception: '认为C语言过时了，不需要学',
+        rootCause: '只看到上层应用开发，不理解底层系统',
+        fix: 'ROS核心、驱动、嵌入式系统大量使用C。理解C有助于理解系统行为和排查底层问题。'
+      },
+      {
+        misconception: '认为编译就是"运行代码"',
+        rootCause: '混淆解释型语言和编译型语言的区别',
+        fix: 'Python是解释执行，边翻译边运行。C需要先编译成机器码，然后才能运行。编译是单独的步骤。'
+      }
+    ],
+    practice: {
+      basic: {
+        task: '编写一个计算两数之和的C程序并编译运行',
+        hints: ['使用 printf 输出结果', 'gcc -o 指定输出文件名'],
+        verifyCommand: 'ls -la ~/c_test/sum && ~/c_test/sum'
+      },
+      intermediate: {
+        task: '使用gcc -Wall编译，解释所有警告信息',
+        hints: ['-Wall 开启所有警告', '警告可能是未使用变量或类型问题'],
+        verifyCommand: 'gcc -Wall ~/c_test/hello.c -o hello 2>&1 | head -5'
+      },
+      advanced: {
+        task: '分步骤编译：预处理、编译、汇编、链接，观察每步产物',
+        hints: ['gcc -E 预处理', 'gcc -S 编译为汇编', 'gcc -c 汇编为目标文件'],
+        verifyCommand: 'ls ~/c_test/hello.* | wc -l'
+      }
+    },
+    pauseAndThink: [
+      {
+        question: '为什么同一份C代码在不同系统上需要重新编译？',
+        answer: '不同系统的机器码格式、系统调用、库函数可能不同。编译产物是特定于平台的，需要针对目标平台重新编译。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'c-quiz-1',
+        question: 'gcc将C代码转换为可执行文件的正确顺序是？',
+        options: ['链接->编译->汇编', '预处理->编译->汇编->链接', '编译->预处理->链接', '汇编->编译->链接'],
+        correctAnswer: 1,
+        explanation: '预处理处理#include和#define，编译转为汇编，汇编转为机器码，链接合并目标文件和库。'
+      },
+      {
+        id: 'c-quiz-2',
+        question: '编译时出现"undefined reference"错误，最可能的原因是？',
+        options: ['语法错误', '缺少链接库', '缺少头文件', '内存不足'],
+        correctAnswer: 1,
+        explanation: 'undefined reference表示链接阶段找不到函数定义，通常是忘记链接库或函数未实现。'
+      }
+    ],
+    reviewSummary: 'C语言编译四步骤：预处理(#include, #define展开)、编译(转为汇编)、汇编(转为机器码)、链接(合并目标文件)。常用gcc选项：-c只编译不链接，-Wall显示警告，-o指定输出文件。',
+    nextLesson: '掌握C语言编译后，下一步学习变量类型和内存管理。',
+    nextLessonLink: 'c-memory-basics',
+    sources: [
+      { title: 'GCC Manual', url: 'https://gcc.gnu.org/onlinedocs/', sourceType: 'official', version: 'GCC 9.4', verifiedAt: '2024-01-01' },
+      { title: 'C语言编译过程详解', url: 'https://akaedu.github.io/book/ch02.html', sourceType: 'tutorial', version: 'C99', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: 'C语言是ROS底层的重要组成部分。虽然ROS主要使用C++和Python，但很多底层驱动、串口通信、传感器协议解析都使用C编写。理解C的编译过程有助于排查跨语言问题和理解系统行为。',
+      whyImportant: '掌握编译过程可以理解链接错误、头文件缺失等问题；C是理解内存管理和指针的基础。',
+      codeExamples: [
+        {
+          language: 'c',
+          code: `#include <stdio.h>  // 标准输入输出头文件
+
+int main() {
+    printf("Hello, ROS World!\\n");
+    return 0;  // 返回0表示程序正常结束
+}`,
+          description: '最简单的C程序',
+          expectedOutput: 'Hello, ROS World!'
+        },
+        {
+          language: 'bash',
+          code: `# 编译C程序
+gcc hello.c -o hello
+
+# 分步骤编译
+gcc -E hello.c -o hello.i    # 预处理
+gcc -S hello.i -o hello.s    # 编译为汇编
+gcc -c hello.s -o hello.o    # 汇编为目标文件
+gcc hello.o -o hello         # 链接
+
+# 查看编译产物大小
+ls -l hello*`,
+          description: 'gcc编译命令'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'undefined reference to `printf\'',
+          cause: '链接阶段找不到函数定义',
+          solution: '确保包含正确的头文件，对于标准库函数通常自动链接'
+        },
+        {
+          error: 'fatal error: stdio.h: No such file',
+          cause: '系统缺少C标准库头文件',
+          solution: '安装开发工具包：sudo apt install build-essential'
+        }
+      ],
+      tips: [
+        '使用 -Wall 选项显示所有警告',
+        '使用 -g 选项添加调试信息',
+        '使用 -O2 选项进行优化'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'GCC Documentation', url: 'https://gcc.gnu.org/onlinedocs/' }
+    ],
+    applicableVersions: ['Ubuntu 20.04'],
+    relatedArticles: ['c-memory-basics', 'cpp-for-ros-intro'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  },
+  // ==================== 编程基础 - C++ for ROS ====================
+  {
+    id: 'cpp-for-ros-intro',
+    slug: 'cpp-for-ros-intro',
+    title: 'C++ for ROS：从编译到节点',
+    category: 'programming-basics',
+    tags: ['C++', 'roscpp', '编译', 'CMake'],
+    summary: '掌握C++基础语法和roscpp开发，理解ROS C++节点的生命周期。',
+    difficulty: 'intermediate',
+    readingTime: 30,
+    prerequisites: ['c-basics-intro'],
+    introHook: {
+      problem: '你想用C++写ROS节点，但看到CMakeLists.txt和package.xml就发愁',
+      scenario: '就像组装家具需要读懂说明书，开发ROS C++节点需要理解CMake构建系统和catkin工作空间'
+    },
+    learningObjectives: [
+      '理解C++与C的主要区别：类、引用、STL',
+      '能编写CMakeLists.txt编译ROS节点',
+      '理解roscpp的NodeHandle、Publisher、Subscriber',
+      '能实现一个完整的talker节点'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否了解C++的类和对象概念？', hint: '类是蓝图，对象是根据蓝图创建的实例' },
+        { question: '你是否知道CMake是什么？', hint: 'CMake是跨平台的构建系统，ROS使用catkin_make' }
+      ]
+    },
+    intuition: {
+      analogy: 'CMake就像建筑图纸，告诉编译器如何把源代码建成可执行程序。CMakeLists.txt是图纸，catkin_make是施工队。',
+      boundaries: '类比局限：CMake还能管理依赖、设置编译选项、生成安装脚本。它不仅是编译，还是整个构建流程的管理者。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: '为什么ROS主要用C++' },
+      { time: '03:00', title: 'C++基础', description: '类、引用、STL容器' },
+      { time: '10:00', title: 'CMake入门', description: 'CMakeLists.txt基本结构' },
+      { time: '15:00', title: 'roscpp节点', description: 'NodeHandle、init、spin' },
+      { time: '22:00', title: '实践', description: '编写talker节点' },
+      { time: '28:00', title: '总结', description: '回顾并布置练习' }
+    ],
+    minimalPractice: {
+      terminal: '终端（Ubuntu 20.04）',
+      currentDirectory: '~/catkin_ws/src',
+      source: 'source /opt/ros/noetic/setup.bash',
+      commands: [
+        { command: 'catkin_create_pkg cpp_tutorial roscpp rospy std_msgs', explanation: '创建ROS包' },
+        { command: 'cd cpp_tutorial && cat > src/talker.cpp << "EOF"\n#include "ros/ros.h"\n#include "std_msgs/String.h"\n\nint main(int argc, char **argv) {\n  ros::init(argc, argv, "talker");\n  ros::NodeHandle nh;\n  ros::Publisher chatter_pub = nh.advertise<std_msgs::String>("chatter", 1000);\n  ros::Rate loop_rate(10);\n  int count = 0;\n  while (ros::ok()) {\n    std_msgs::String msg;\n    msg.data = "hello world " + std::to_string(count++);\n    ROS_INFO("%s", msg.data.c_str());\n    chatter_pub.publish(msg);\n    ros::spinOnce();\n    loop_rate.sleep();\n  }\n  return 0;\n}\nEOF', explanation: '创建talker节点' },
+        { command: 'catkin_make', explanation: '编译工作空间' },
+        { command: 'source ~/catkin_ws/devel/setup.bash && rosrun cpp_tutorial talker', explanation: '运行节点' }
+      ],
+      expectedOutput: 'hello world 0, hello world 1, ...'
+    },
+    misconceptions: [
+      {
+        misconception: '认为C++就是C加了一些东西',
+        rootCause: '不理解面向对象编程的本质',
+        fix: 'C++引入了类、继承、多态、模板等。它不只是语法扩展，而是一种新的编程范式。'
+      },
+      {
+        misconception: '把所有代码都写在头文件里',
+        rootCause: '不理解C++编译模型和分离编译',
+        fix: '头文件(.h)声明接口，源文件(.cpp)实现。分离编译可以减少编译时间，避免循环依赖。'
+      }
+    ],
+    practice: {
+      basic: {
+        task: '创建一个发布 Int 消息的节点',
+        hints: ['使用 std_msgs/Int', '修改 advertise 模板参数'],
+        verifyCommand: 'rostopic echo /int_topic'
+      },
+      intermediate: {
+        task: '修改CMakeLists.txt添加可执行目标',
+        hints: ['add_executable', 'target_link_libraries'],
+        verifyCommand: 'catkin_make && rosrun cpp_tutorial talker'
+      },
+      advanced: {
+        task: '实现一个Subscriber接收chatter话题',
+        hints: ['subscribe()方法', '回调函数签名'],
+        verifyCommand: 'rostopic pub /chatter std_msgs/String "test"'
+      }
+    },
+    pauseAndThink: [
+      {
+        question: '为什么ROS用CMake而不是直接用gcc？',
+        answer: 'CMake管理复杂的依赖关系、自动找到ROS包、生成Makefile。ROS项目有大量包和依赖，手动用gcc几乎不可能。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'cpp-quiz-1',
+        question: 'ros::spin()和ros::spinOnce()的区别是？',
+        options: ['spinOnce处理所有回调后返回', 'spin一直阻塞，spinOnce处理一次', '没有区别', 'spin更快'],
+        correctAnswer: 1,
+        explanation: 'spin()进入无限循环处理回调，spinOnce()处理一批回调后返回，适合需要在循环中做其他操作的情况。'
+      }
+    ],
+    reviewSummary: 'C++核心：类、引用、STL。CMakeLists核心：find_package、add_executable、target_link_libraries。roscpp核心：ros::init、NodeHandle、advertise/subscribe、spin。',
+    nextLesson: '继续学习Python for ROS，对比两种语言差异。',
+    nextLessonLink: 'python-for-ros-intro',
+    sources: [
+      { title: 'ROS C++ Wiki', url: 'http://wiki.ros.org/roscpp', sourceType: 'official', version: 'Noetic', verifiedAt: '2024-01-01' },
+      { title: 'CMake Tutorial', url: 'https://cmake.org/cmake/help/latest/guide/tutorial/', sourceType: 'official', version: 'CMake 3.16', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: 'C++是ROS的主要开发语言之一。相比Python，C++性能更好、类型更安全，适合实时控制、计算密集型任务。roscpp是ROS的C++客户端库，提供节点管理、消息通信等功能。',
+      whyImportant: '大多数ROS核心功能和高性能节点使用C++开发。理解C++和CMake是ROS开发的基本功。',
+      codeExamples: [
+        {
+          language: 'cpp',
+          code: `// CMakeLists.txt 最小模板
+cmake_minimum_required(VERSION 3.0.2)
+project(my_package)
+
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
+
+catkin_package()
+
+include_directories(\${catkin_INCLUDE_DIRS})
+
+add_executable(my_node src/my_node.cpp)
+target_link_libraries(my_node \${catkin_LIBRARIES})`,
+          description: 'ROS包的CMakeLists.txt'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'undefined reference to `ros::init\'',
+          cause: '忘记链接roscpp库',
+          solution: '在target_link_libraries中添加${catkin_LIBRARIES}'
+        },
+        {
+          error: 'catkin_package not found',
+          cause: '没有source ROS环境',
+          solution: 'source /opt/ros/noetic/setup.bash'
+        }
+      ],
+      tips: [
+        '使用 catkin_make -DCMAKE_BUILD_TYPE=Release 发布版本',
+        '用 roslint 检查代码风格',
+        '用 catkin config 管理编译选项'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'ROS Wiki: roscpp', url: 'http://wiki.ros.org/roscpp' }
+    ],
+    applicableVersions: ['Ubuntu 20.04', 'ROS Noetic'],
+    relatedArticles: ['c-basics-intro', 'python-for-ros-intro', 'ros-publisher-subscriber'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  },
+  // ==================== 编程基础 - Python for ROS ====================
+  {
+    id: 'python-for-ros-intro',
+    slug: 'python-for-ros-intro',
+    title: 'Python for ROS：快速开发节点',
+    category: 'programming-basics',
+    tags: ['Python', 'rospy', '快速开发', '脚本'],
+    summary: '掌握Python基础和rospy开发，快速实现ROS节点原型和工具。',
+    difficulty: 'beginner',
+    readingTime: 25,
+    prerequisites: [],
+    introHook: {
+      problem: '你想快速验证一个ROS想法，但C++开发周期太长',
+      scenario: '就像写便签用铅笔，快速原型用Python。几行代码就能发布话题，几分钟就能验证想法'
+    },
+    learningObjectives: [
+      '掌握Python基础：变量、函数、类、模块',
+      '能使用rospy创建Publisher和Subscriber',
+      '理解Python节点与C++节点的开发效率差异',
+      '能正确设置Python脚本的执行权限'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否写过Python程序？', hint: 'Python使用缩进表示代码块' },
+        { question: '你是否知道Python脚本需要执行权限？', hint: 'chmod +x script.py' }
+      ]
+    },
+    intuition: {
+      analogy: 'Python就像口语，C++就像书面语。Python代码更接近自然语言，开发更快但执行效率较低。',
+      boundaries: '类比局限：Python有完整的类型系统和面向对象特性。它不仅是脚本语言，还能开发大型项目。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: 'Python在ROS中的角色' },
+      { time: '03:00', title: 'Python基础', description: '变量、容器、函数' },
+      { time: '08:00', title: 'rospy入门', description: 'init_node、Publisher、Subscriber' },
+      { time: '14:00', title: '实践', description: '编写talker和listener' },
+      { time: '20:00', title: '对比', description: 'Python vs C++' },
+      { time: '23:00', title: '总结', description: '何时选择Python' }
+    ],
+    minimalPractice: {
+      terminal: '终端（Ubuntu 20.04）',
+      currentDirectory: '~/catkin_ws/src',
+      source: 'source /opt/ros/noetic/setup.bash',
+      commands: [
+        { command: 'catkin_create_pkg py_tutorial rospy std_msgs', explanation: '创建Python包' },
+        { command: 'mkdir -p py_tutorial/scripts && cat > py_tutorial/scripts/talker.py << "EOF"\n#!/usr/bin/env python3\nimport rospy\nfrom std_msgs.msg import String\n\ndef talker():\n    pub = rospy.Publisher("chatter", String, queue_size=10)\n    rospy.init_node("talker", anonymous=True)\n    rate = rospy.Rate(10)\n    while not rospy.is_shutdown():\n        hello_str = "hello world %s" % rospy.get_time()\n        rospy.loginfo(hello_str)\n        pub.publish(hello_str)\n        rate.sleep()\n\nif __name__ == "__main__":\n    talker()\nEOF', explanation: '创建talker脚本' },
+        { command: 'chmod +x py_tutorial/scripts/talker.py', explanation: '添加执行权限' },
+        { command: 'catkin_make && source ~/catkin_ws/devel/setup.bash', explanation: '编译和source' },
+        { command: 'rosrun py_tutorial talker.py', explanation: '运行节点' }
+      ],
+      expectedOutput: 'hello world 时间戳'
+    },
+    misconceptions: [
+      {
+        misconception: '认为Python性能太差不值得学',
+        rootCause: '只看执行速度，忽略开发效率',
+        fix: 'Python适合原型开发、工具脚本、高层逻辑。性能关键部分用C++，其他用Python，各取所长。'
+      },
+      {
+        misconception: '忘记在Python脚本加shebang',
+        rootCause: '不理解Linux如何识别脚本解释器',
+        fix: '第一行必须是 #!/usr/bin/env python3，否则rosrun无法正确执行。'
+      }
+    ],
+    practice: {
+      basic: {
+        task: '创建一个打印当前时间的节点',
+        hints: ['rospy.get_time()获取时间', 'rospy.loginfo输出日志'],
+        verifyCommand: 'rosrun py_tutorial timer.py'
+      },
+      intermediate: {
+        task: '创建Subscriber订阅chatter并打印',
+        hints: ['rospy.Subscriber', '回调函数'],
+        verifyCommand: 'rostopic pub /chatter std_msgs/String "test"'
+      },
+      advanced: {
+        task: '实现一个Service服务端',
+        hints: ['rospy.Service', '定义srv文件'],
+        verifyCommand: 'rosservice call /my_service'
+      }
+    },
+    pauseAndThink: [
+      {
+        question: '为什么ROS Noetic默认用Python 3？',
+        answer: 'Python 2已于2020年停止维护。Python 3有更好的Unicode支持、类型注解、异步编程等特性。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'py-quiz-1',
+        question: 'rospy中的Rate(10)表示？',
+        options: ['每秒10次循环', '等待10秒', '队列大小10', '优先级10'],
+        correctAnswer: 0,
+        explanation: 'Rate(10)创建一个每秒10次的循环控制对象，配合rate.sleep()使用。'
+      },
+      {
+        id: 'py-quiz-2',
+        question: 'Python脚本第一行应该是？',
+        options: ['# coding: utf-8', '#!/usr/bin/env python3', 'import rospy', '# Python script'],
+        correctAnswer: 1,
+        explanation: 'shebang行告诉系统用哪个解释器运行脚本，必须放在文件开头。'
+      }
+    ],
+    reviewSummary: 'Python核心：变量、函数、类。rospy核心：init_node、Publisher、Subscriber、Rate。注意事项：shebang、执行权限、Python 3。',
+    nextLesson: '对比C++和Python实现同一功能，选择合适语言。',
+    nextLessonLink: 'cpp-python-comparison',
+    sources: [
+      { title: 'ROS Python Wiki', url: 'http://wiki.ros.org/rospy', sourceType: 'official', version: 'Noetic', verifiedAt: '2024-01-01' },
+      { title: 'Python Tutorial', url: 'https://docs.python.org/3/tutorial/', sourceType: 'official', version: 'Python 3.8', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: 'Python是ROS快速开发的首选语言。相比C++，Python代码更简洁，不需要编译，适合原型验证、工具开发、数据处理等场景。rospy是ROS的Python客户端库。',
+      whyImportant: 'Python开发效率高，很多ROS工具和脚本使用Python。理解rospy是ROS开发的基本技能。',
+      codeExamples: [
+        {
+          language: 'python',
+          code: `#!/usr/bin/env python3
+import rospy
+from std_msgs.msg import String
+
+def callback(data):
+    rospy.loginfo(rospy.get_caller_id() + " I heard %s", data.data)
+
+def listener():
+    rospy.init_node('listener', anonymous=True)
+    rospy.Subscriber("chatter", String, callback)
+    rospy.spin()
+
+if __name__ == '__main__':
+    listener()`,
+          description: 'rospy Subscriber示例'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'ModuleNotFoundError: No module named rospy',
+          cause: '没有source ROS环境',
+          solution: 'source /opt/ros/noetic/setup.bash'
+        },
+        {
+          error: 'Permission denied',
+          cause: '脚本没有执行权限',
+          solution: 'chmod +x script.py'
+        }
+      ],
+      tips: [
+        '使用 #!/usr/bin/env python3 确保Python 3',
+        '使用 rospy.logxxx 替代 print 以便调试',
+        '避免在回调中做耗时操作'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'ROS Wiki: rospy', url: 'http://wiki.ros.org/rospy' }
+    ],
+    applicableVersions: ['Ubuntu 20.04', 'ROS Noetic'],
+    relatedArticles: ['cpp-for-ros-intro', 'ros-publisher-subscriber'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  },
+  // ==================== 编程基础 - 语言桥接 ====================
+  {
+    id: 'cpp-python-comparison',
+    slug: 'cpp-python-comparison',
+    title: 'C++ vs Python：同一个温度传感器节点',
+    category: 'programming-basics',
+    tags: ['C++', 'Python', '对比', 'roscpp', 'rospy'],
+    summary: '对比实现同一个温度传感器节点，理解C++和Python在ROS开发中的差异与选择。',
+    difficulty: 'intermediate',
+    readingTime: 20,
+    prerequisites: ['cpp-for-ros-intro', 'python-for-ros-intro'],
+    introHook: {
+      problem: '你知道C++和Python都能写ROS节点，但不清楚如何选择',
+      scenario: '就像选择工具：螺丝刀还是电钻？各有适用场景，理解差异才能做出正确选择'
+    },
+    learningObjectives: [
+      '能对比C++和Python的ROS节点实现差异',
+      '理解性能、开发效率、类型安全的权衡',
+      '能根据场景选择合适的开发语言',
+      '理解回调、Rate、spin在两种语言中的实现'
+    ],
+    prerequisite: {
+      questions: [
+        { question: '你是否用两种语言写过ROS节点？', hint: '如果没有，先完成前置课程' },
+        { question: '你是否理解编译型语言和解释型语言的差异？', hint: 'C++需要编译，Python解释执行' }
+      ]
+    },
+    intuition: {
+      analogy: 'C++像手工打造的机械表，精密度高性能好但制作慢；Python像智能手表，功能多开发快但续航一般。',
+      boundaries: '类比局限：Python也能写高性能代码（配合numpy等），C++也能快速开发（配合现代特性）。关键是场景和团队。'
+    },
+    timeline: [
+      { time: '00:00', title: '场景导入', description: '温度传感器节点需求' },
+      { time: '02:00', title: 'C++实现', description: 'roscpp版本代码' },
+      { time: '07:00', title: 'Python实现', description: 'rospy版本代码' },
+      { time: '12:00', title: '对比分析', description: '代码量、性能、开发时间' },
+      { time: '16:00', title: '选择指南', description: '何时用哪种语言' },
+      { time: '19:00', title: '总结', description: '最佳实践' }
+    ],
+    minimalPractice: {
+      terminal: '终端（Ubuntu 20.04）',
+      currentDirectory: '~/catkin_ws/src',
+      source: 'source /opt/ros/noetic/setup.bash',
+      commands: [
+        { command: '# C++版本需要更多代码，Python版本更简洁', explanation: '这是注释说明' },
+        { command: '# 性能测试：C++发布10000条消息约0.1秒，Python约0.5秒', explanation: '这是注释说明' }
+      ],
+      expectedOutput: '对比两种语言的实现差异'
+    },
+    misconceptions: [
+      {
+        misconception: '认为Python只适合学习，生产环境必须用C++',
+        rootCause: '过度强调性能，忽略开发效率',
+        fix: '很多生产环境大量使用Python（工具、可视化、高层逻辑）。关键是识别瓶颈，用合适的语言解决问题。'
+      },
+      {
+        misconception: '混用语言时不用考虑类型一致性',
+        rootCause: '不理解消息类型在跨语言通信中的重要性',
+        fix: '消息类型在ROS中是跨语言的。Python和C++必须使用相同的.msg定义，否则通信失败。'
+      }
+    ],
+    practice: {
+      basic: {
+        task: '统计两种语言实现同一功能的代码行数差异',
+        hints: ['wc -l 统计行数', 'C++通常多30-50%'],
+        verifyCommand: 'wc -l talker.cpp talker.py'
+      },
+      intermediate: {
+        task: '测量发布1000条消息的时间',
+        hints: ['time命令', 'rostopic hz测量频率'],
+        verifyCommand: 'time rosrun pkg node'
+      },
+      advanced: {
+        task: '分析C++和Python节点的内存占用',
+        hints: ['top或htop查看', 'Python解释器占用更大'],
+        verifyCommand: 'ps aux | grep ros'
+      }
+    },
+    pauseAndThink: [
+      {
+        question: '为什么同一个节点，C++编译后几MB，Python脚本只有几KB？',
+        answer: 'C++编译后包含完整机器码，Python脚本只是源代码，运行时需要解释器翻译。但Python解释器本身占用内存。'
+      }
+    ],
+    quiz: [
+      {
+        id: 'cpp-py-quiz-1',
+        question: '以下场景最适合Python的是？',
+        options: ['实时控制（1000Hz）', '快速原型验证', '嵌入式驱动', '核心算法'],
+        correctAnswer: 1,
+        explanation: 'Python开发快，适合原型验证。实时控制、驱动、核心算法通常用C++。'
+      },
+      {
+        id: 'cpp-py-quiz-2',
+        question: 'C++ ROS节点相比Python的优势是？',
+        options: ['开发更快', '类型安全、性能好', '代码更短', '不需要编译'],
+        correctAnswer: 1,
+        explanation: 'C++编译时类型检查，运行效率高。但开发周期长，代码量大。'
+      }
+    ],
+    reviewSummary: 'C++优势：性能、类型安全、实时性；Python优势：开发效率、灵活性、工具丰富。选择原则：实时/嵌入式用C++，原型/工具用Python，混合使用各取所长。',
+    nextLesson: '继续学习ROS核心概念，如话题和消息。',
+    nextLessonLink: 'ros-topic',
+    sources: [
+      { title: 'ROS Language Comparison', url: 'http://wiki.ros.org/ROS/Introduction#Choosing_a_Language', sourceType: 'official', version: 'Noetic', verifiedAt: '2024-01-01' }
+    ],
+    content: {
+      explanation: '同一个温度传感器节点，C++需要更多代码但性能更好，Python更简洁但执行较慢。理解两者差异，才能在不同场景做出正确选择。',
+      whyImportant: 'ROS项目通常混合使用多种语言。理解语言差异有助于架构设计和团队协作。',
+      codeExamples: [
+        {
+          language: 'cpp',
+          code: `// C++ 温度传感器节点
+#include "ros/ros.h"
+#include "std_msgs/Float64.h"
+#include <random>
+
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "temp_sensor");
+  ros::NodeHandle nh;
+  ros::Publisher temp_pub = nh.advertise<std_msgs::Float64>("temperature", 10);
+  ros::Rate loop_rate(1);
+  
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(25.0, 2.0);
+  
+  while (ros::ok()) {
+    std_msgs::Float64 msg;
+    msg.data = distribution(generator);
+    ROS_INFO("Temperature: %.2f", msg.data);
+    temp_pub.publish(msg);
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+  return 0;
+}`,
+          description: 'C++版本（需要编译）'
+        },
+        {
+          language: 'python',
+          code: `#!/usr/bin/env python3
+# Python 温度传感器节点
+import rospy
+from std_msgs.msg import Float64
+import random
+
+def temp_sensor():
+    pub = rospy.Publisher('temperature', Float64, queue_size=10)
+    rospy.init_node('temp_sensor', anonymous=True)
+    rate = rospy.Rate(1)
+    
+    while not rospy.is_shutdown():
+        temp = random.gauss(25.0, 2.0)
+        rospy.loginfo(f"Temperature: {temp:.2f}")
+        pub.publish(temp)
+        rate.sleep()
+
+if __name__ == '__main__':
+    temp_sensor()`,
+          description: 'Python版本（直接运行）'
+        }
+      ],
+      commonErrors: [
+        {
+          error: 'Python节点无法import自定义消息',
+          cause: '消息包没有被catkin编译',
+          solution: '先编译消息包，再source devel/setup.bash'
+        },
+        {
+          error: 'C++节点编译时找不到消息头文件',
+          cause: '依赖顺序问题',
+          solution: '确保CMakeLists.txt中generate_messages()在add_executable之前'
+        }
+      ],
+      tips: [
+        '快速原型用Python，稳定后用C++重写',
+        '团队熟悉的语言优先',
+        '混合项目注意消息类型版本一致'
+      ]
+    },
+    rosVersion: 'ROS1',
+    officialSources: [
+      { title: 'ROS Wiki: Choosing a Language', url: 'http://wiki.ros.org/ROS/Introduction#Choosing_a_Language' }
+    ],
+    applicableVersions: ['Ubuntu 20.04', 'ROS Noetic'],
+    relatedArticles: ['cpp-for-ros-intro', 'python-for-ros-intro', 'ros-topic'],
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   }
 ];
-
 // 导出辅助函数
 export function getArticleBySlug(slug: string): KnowledgeArticle | undefined {
   return knowledgeArticles.find(article => article.slug === slug);

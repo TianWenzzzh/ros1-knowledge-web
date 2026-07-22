@@ -43,6 +43,7 @@ const difficultyLabels = {
 // 分类颜色
 const categoryColors: Record<Category, string> = {
   'linux-ubuntu': 'border-blue-400',
+  'programming-basics': 'border-emerald-400',
   'ros-basics': 'border-cyan-400',
   'ros-comm': 'border-teal-400',
   'communication': 'border-purple-400',

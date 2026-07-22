@@ -3,6 +3,7 @@
 // 知识分类
 export type Category =
   | 'linux-ubuntu'
+  | 'programming-basics'
   | 'ros-basics'
   | 'ros-comm'
   | 'communication'
@@ -16,21 +17,23 @@ export type Category =
 
 export const CATEGORY_INFO: Record<Category, { name: string; icon: string; description: string; order: number }> = {
   'linux-ubuntu': { name: 'Linux/Ubuntu', icon: '🐧', description: 'Linux系统基础与Ubuntu环境配置', order: 1 },
-  'ros-basics': { name: 'ROS基础', icon: '🤖', description: 'ROS核心概念与基础操作', order: 2 },
-  'ros-comm': { name: '通信编程', icon: '📡', description: 'Publisher/Subscriber/Service/Action通信编程', order: 3 },
-  'communication': { name: '通信机制', icon: '📡', description: '话题、服务、动作等通信方式', order: 4 },
-  'tools': { name: '工具', icon: '🔧', description: 'ROS开发与调试工具', order: 5 },
-  'transform': { name: '坐标与模型', icon: '📐', description: 'TF变换与机器人模型描述', order: 6 },
-  'simulation': { name: '仿真', icon: '🎮', description: 'Gazebo仿真环境与配置', order: 7 },
-  'navigation': { name: '导航', icon: '🧭', description: 'SLAM建图与自主导航', order: 8 },
-  'vision': { name: '视觉', icon: '👁️', description: '摄像头与图像处理', order: 9 },
-  'manipulation': { name: '机械臂', icon: '🦾', description: 'MoveIt运动规划与控制', order: 10 },
-  'debug-migration': { name: '调试与迁移', icon: '🐛', description: '调试技巧与ROS2迁移', order: 11 },
+  'programming-basics': { name: '编程基础', icon: '💻', description: 'C/C++/Python编程基础与ROS应用', order: 2 },
+  'ros-basics': { name: 'ROS基础', icon: '🤖', description: 'ROS核心概念与基础操作', order: 3 },
+  'ros-comm': { name: '通信编程', icon: '📡', description: 'Publisher/Subscriber/Service/Action通信编程', order: 4 },
+  'communication': { name: '通信机制', icon: '📡', description: '话题、服务、动作等通信方式', order: 5 },
+  'tools': { name: '工具', icon: '🔧', description: 'ROS开发与调试工具', order: 6 },
+  'transform': { name: '坐标与模型', icon: '📐', description: 'TF变换与机器人模型描述', order: 7 },
+  'simulation': { name: '仿真', icon: '🎮', description: 'Gazebo仿真环境与配置', order: 8 },
+  'navigation': { name: '导航', icon: '🧭', description: 'SLAM建图与自主导航', order: 9 },
+  'vision': { name: '视觉', icon: '👁️', description: '摄像头与图像处理', order: 10 },
+  'manipulation': { name: '机械臂', icon: '🦾', description: 'MoveIt运动规划与控制', order: 11 },
+  'debug-migration': { name: '调试与迁移', icon: '🐛', description: '调试技巧与ROS2迁移', order: 12 },
 };
 
 // 分类列表（用于导出）
 export const categories: Category[] = [
   'linux-ubuntu',
+  'programming-basics',
   'ros-basics',
   'ros-comm',
   'communication',

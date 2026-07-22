@@ -423,6 +423,7 @@ export function SearchTrigger({ onClick }: { onClick: () => void }) {
 export function getCategoryColor(category: Category): string {
   const colors: Record<Category, string> = {
     'linux-ubuntu': 'bg-amber-100 text-amber-800',
+    'programming-basics': 'bg-emerald-100 text-emerald-800',
     'ros-basics': 'bg-cyan-100 text-cyan-800',
     'ros-comm': 'bg-cyan-100 text-cyan-800',
     'communication': 'bg-blue-100 text-blue-800',
