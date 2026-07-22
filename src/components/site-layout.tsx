@@ -155,9 +155,9 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
         跳转到正文
       </a>
 
-      {/* 顶部导航栏 */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="flex h-14 items-center justify-between px-4 lg:px-6">
+      {/* 顶部导航栏 - 完全不透明 */}
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white">
+        <div className="flex h-14 items-center justify-between px-4 lg:px-6 lg:pl-[272px]">
           {/* Logo + 移动端菜单 */}
           <div className="flex items-center gap-3">
             {isArticlePage && (
@@ -222,10 +222,10 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
 
       {/* 三栏布局 */}
       <div className="flex">
-        {/* 左侧导航栏 - 桌面端固定显示 */}
+        {/* 左侧导航栏 - 桌面端固定显示，完全不透明 */}
         <aside 
           className={cn(
-            "hidden lg:block fixed left-0 top-14 bottom-0 w-64 border-r border-slate-200 bg-slate-50/50 overflow-y-auto",
+            "hidden lg:block fixed left-0 top-14 bottom-0 w-64 border-r border-slate-200 bg-slate-50 overflow-y-auto z-30",
             "transition-transform duration-200",
             leftSidebarCollapsed && "-translate-x-full"
           )}
@@ -356,13 +356,13 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
           </Sheet>
         )}
 
-        {/* 主内容区 */}
+        {/* 主内容区 - 桌面端避让左侧栏 */}
         <main 
           id="main-content" 
           tabIndex={-1}
           className={cn(
-            "flex-1 min-w-0",
-            isArticlePage ? "lg:ml-64" : ""
+            "flex-1 min-w-0 lg:ml-64",
+            isArticlePage && "xl:mr-56"
           )}
         >
           <div className={cn(
@@ -375,10 +375,10 @@ export function SiteLayout({ children, rightSidebar, leftSidebarCollapsed }: Sit
           </div>
         </main>
 
-        {/* 右侧目录栏 - 仅文章页显示 */}
+        {/* 右侧目录栏 - 仅文章页显示，完全不透明 */}
         {isArticlePage && rightSidebar && (
           <aside 
-            className="hidden xl:block fixed right-0 top-14 bottom-0 w-56 border-l border-slate-200 bg-white/50 overflow-y-auto"
+            className="hidden xl:block fixed right-0 top-14 bottom-0 w-56 border-l border-slate-200 bg-white overflow-y-auto z-30"
             aria-label="本页目录"
           >
             <div className="p-4">
