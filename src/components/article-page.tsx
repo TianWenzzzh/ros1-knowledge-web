@@ -118,7 +118,7 @@ export function ArticlePage({ slug }: ArticlePageProps) {
     
     items.push({ id: 'quiz', text: '自测', level: 2 });
     
-    if (article.quiz && article.quiz.length > 0) {
+    if (article.content.quiz && article.content.quiz.length > 0) {
       // Quiz section already added
     }
     
@@ -307,11 +307,11 @@ export function ArticlePage({ slug }: ArticlePageProps) {
             </header>
 
             {/* 课程模式：30秒先导 */}
-            {courseMode && article.content.introHook && (
+            {courseMode && (article.introHook || article.content.introHook) && (
               <section id="intro" className="mb-8">
                 <IntroHook 
-                  problem={article.content.introHook.problem}
-                  scenario={article.content.introHook.scenario}
+                  problem={(article.introHook || article.content.introHook)?.problem}
+                  scenario={(article.introHook || article.content.introHook)?.scenario}
                 />
               </section>
             )}
@@ -358,7 +358,7 @@ export function ArticlePage({ slug }: ArticlePageProps) {
             {/* 暂停思考 */}
             {courseMode && article.content.pauseAndThink && article.content.pauseAndThink.length > 0 && (
               <section id="pause-and-think" className="mb-8">
-                {article.content.pauseAndThink.map((item, idx) => (
+                {article.content.pauseAndThink.map((item: { question: string; answer: string }, idx: number) => (
                   <PauseAndThink 
                     key={idx}
                     question={item.question}
@@ -500,14 +500,14 @@ export function ArticlePage({ slug }: ArticlePageProps) {
             )}
 
             {/* 自测 */}
-            {article.quiz && article.quiz.length > 0 && (
+            {article.content.quiz && article.content.quiz.length > 0 && (
               <section id="quiz" className="mb-8">
                 <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
                   <HelpCircle className="w-5 h-5 text-purple-600" />
                   自测
                 </h2>
                 <div className="space-y-6">
-                  {article.quiz.map((q) => (
+                  {article.content.quiz?.map((q) => (
                     <InlineQuiz key={q.id} quiz={q} />
                   ))}
                 </div>

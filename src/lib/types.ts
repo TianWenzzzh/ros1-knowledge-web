@@ -92,27 +92,60 @@ export interface KnowledgeArticle {
     commonErrors: CommonError[];
     tips: string[];
     practice: string[];
-    // 精品课程模板字段
+    
+    // 精品课程模板字段（content内部）
     introHook?: {
-      problem: string; // 解决什么问题
-      scenario: string; // 具体场景
+      problem: string;
+      scenario: string;
     };
     prerequisite?: {
       questions: string[];
       helpText?: string;
     };
-    intuition?: string; // 直觉模型
-    visualizations?: string[]; // 可视化理解（Mermaid或描述）
-    misconceptions?: string[]; // 高频误区
+    intuition?: string;
+    visualizations?: string[];
+    misconceptions?: {
+      misconception: string;
+      rootCause: string;
+      correctApproach: string;
+    }[];
     pauseAndThink?: {
       question: string;
       answer: string;
     }[];
-    reviewSummary?: string; // 60秒复盘
-    nextLessonLink?: string; // 下一课衔接
+    reviewSummary?: string;
+    nextLessonLink?: string;
+    quiz?: {
+      id: string;
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation: string;
+    }[];
   };
   
-  // 自测题
+  // 精品课程模板字段（顶层，兼容两种位置）
+  introHook?: {
+    problem: string;
+    scenario: string;
+  };
+  prerequisite?: {
+    questions: string[];
+    helpText?: string;
+  };
+  intuition?: string;
+  visualizations?: string[];
+  misconceptions?: {
+    misconception: string;
+    rootCause: string;
+    correctApproach: string;
+  }[];
+  pauseAndThink?: {
+    question: string;
+    answer: string;
+  }[];
+  reviewSummary?: string;
+  nextLessonLink?: string;
   quiz?: {
     id: string;
     question: string;

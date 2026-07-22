@@ -7,11 +7,12 @@ import { useUserContext } from '@/lib/user-context';
 
 // ============ 30秒先导组件 ============
 interface IntroHookProps {
-  problem: string;
-  scenario: string;
+  problem?: string;
+  scenario?: string;
 }
 
 export function IntroHook({ problem, scenario }: IntroHookProps) {
+  if (!problem) return null;
   return (
     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-600 p-4 rounded-r-lg mb-6">
       <div className="flex items-start gap-3">
@@ -21,7 +22,7 @@ export function IntroHook({ problem, scenario }: IntroHookProps) {
         <div>
           <p className="text-sm text-blue-600 font-medium mb-1">本节解决什么问题？</p>
           <p className="text-slate-800 font-medium text-lg">{problem}</p>
-          <p className="text-slate-600 text-sm mt-1">场景：{scenario}</p>
+          {scenario && <p className="text-slate-600 text-sm mt-1">场景：{scenario}</p>}
         </div>
       </div>
     </div>

@@ -95,8 +95,68 @@ rostopic list | grep cmd_vel`,
         '在 home 目录下创建一个 catkin_ws 工作空间目录结构',
         '使用 grep 在 .bashrc 中查找所有 ROS 相关配置',
         '编写一个简单的 shell 脚本并添加执行权限'
-      ]
+      ],
+      // 精品课程模板字段
+      introHook: {
+        problem: '你需要在终端中执行各种操作，但不知道该用什么命令',
+        scenario: '假设你要查看一个ROS包的源码位置、检查环境变量是否正确、或者终止一个卡死的节点'
+      },
+      prerequisite: {
+        questions: [
+          '你知道如何打开终端吗？',
+          '你能区分相对路径和绝对路径吗？',
+          '你了解文件权限的概念吗？'
+        ],
+        helpText: '如果以上问题有否定答案，建议先花10分钟了解计算机基本操作'
+      },
+      intuition: '把终端想象成一个"文字版文件管理器"。你用鼠标点击图标，在终端里输入命令。每个命令就像一个工具，ls是"看"，cd是"走"，cp是"复制"，rm是"删除"。和文件管理器不同的是，终端可以组合命令（管道），可以自动化（脚本），可以远程操作（ssh）。',
+      visualizations: [
+        '终端命令类比：ls = 打开文件夹查看，cd = 双击进入文件夹，mkdir = 新建文件夹，rm = 删除文件',
+        '权限类比：chmod +x 就像给文件贴上"可运行"标签，sudo 就像用管理员钥匙开门'
+      ],
+      misconceptions: [
+        { misconception: 'sudo是万能的，什么都用sudo', rootCause: '不理解权限系统', correctApproach: '只在系统级操作时用sudo，普通文件操作不需要' },
+        { misconception: 'rm -rf 随便用', rootCause: '不理解递归删除的危险', correctApproach: '先用ls确认，再删除，永远不要在/目录执行rm -rf *' },
+        { misconception: '所有命令都要背下来', rootCause: '对命令行有畏难情绪', correctApproach: '记住最常用的10个，其他用man或--help查' }
+      ],
+      pauseAndThink: [
+        {
+          question: '如果要查看当前目录下所有包含"ros"的文件名，应该用什么命令组合？',
+          answer: 'ls | grep ros。ls列出文件，grep ros筛选包含ros的行。这是管道的基本用法。'
+        },
+        {
+          question: '为什么执行./myscript.sh会提示Permission denied？',
+          answer: '因为脚本文件没有执行权限。需要运行 chmod +x myscript.sh 添加执行权限后再运行。'
+        }
+      ],
+      reviewSummary: '核心命令：ls/cd/mkdir/rm 用于文件操作，chmod管理权限，grep/管道过滤内容，sudo提权。记住Tab补全、Ctrl+C终止、man查帮助。',
+      nextLessonLink: 'ubuntu-setup'
     },
+    // 自测题
+    quiz: [
+      {
+        id: 'linux-quiz-1',
+        question: '要在终端查看当前所在目录的完整路径，应该用什么命令？',
+        options: ['ls', 'pwd', 'cd', 'where'],
+        correctAnswer: 1,
+        explanation: 'pwd (print working directory) 显示当前工作目录的完整路径。ls是列出内容，cd是切换目录。'
+      },
+      {
+        id: 'linux-quiz-2',
+        question: '以下哪个命令可以安全地删除一个非空目录？',
+        options: ['rm 目录名', 'rm -f 目录名', 'rm -r 目录名', 'del 目录名'],
+        correctAnswer: 2,
+        explanation: 'rm -r 递归删除目录及其内容。-f是强制删除不提示，单独rm不能删除目录，del不是Linux命令。'
+      }
+    ],
+    learningObjectives: [
+      '能在终端中自由导航文件系统',
+      '能正确使用文件操作命令',
+      '能理解并管理文件权限',
+      '能使用管道组合命令',
+      '能查阅命令帮助文档'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'Ubuntu 官方文档', url: 'https://ubuntu.com/tutorials/command-line-for-beginners' },
       { title: 'Linux 命令行大全', url: 'https://www.gnu.org/software/bash/manual/' }
@@ -189,8 +249,67 @@ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc`,
         '完成 ROS Noetic 的完整安装',
         '创建 catkin 工作空间并编译',
         '运行 roscore 验证安装成功'
-      ]
+      ],
+      // 精品课程模板字段
+      introHook: {
+        problem: '你想开始ROS开发，但系统还没有配置好ROS环境',
+        scenario: '你刚装好Ubuntu 20.04，需要安装ROS Noetic并配置好开发环境，让一切准备就绪'
+      },
+      prerequisite: {
+        questions: [
+          '你使用的是Ubuntu 20.04系统吗？（Noetic只支持20.04）',
+          '你知道如何打开终端吗？',
+          '你有稳定的网络连接吗？'
+        ],
+        helpText: '如果系统版本不对，请先安装Ubuntu 20.04。网络不稳定可使用国内镜像源。'
+      },
+      intuition: '把ROS安装想象成"装修房子"。系统是毛坯房，ROS是水电煤气基础设施。source setup.bash就像"通电"——让系统知道ROS在哪里。不source就等于没通电，所有ROS命令都无法使用。',
+      visualizations: [
+        '环境变量类比：ROS_PACKAGE_PATH就像系统的"通讯录"，记录了所有ROS包的位置',
+        'source顺序：先source /opt/ros/noetic/setup.bash（系统级），再source ~/catkin_ws/devel/setup.bash（工作空间级），后者会覆盖前者'
+      ],
+      misconceptions: [
+        { misconception: '安装完ROS就能直接用ros命令', rootCause: '不理解环境变量机制', correctApproach: '每次打开新终端都要source，或写入.bashrc自动执行' },
+        { misconception: 'source顺序无所谓', rootCause: '不了解overlay机制', correctApproach: '先系统后工作空间，工作空间会覆盖系统级设置' },
+        { misconception: 'ROS1会一直维护', rootCause: '不了解EOL政策', correctApproach: 'ROS1 Noetic已于2025-05-31 EOL，建议新项目考虑ROS2' }
+      ],
+      pauseAndThink: [
+        {
+          question: '为什么每次打开新终端都要source？有什么办法可以自动执行？',
+          answer: '因为环境变量只在当前终端有效。将source命令写入~/.bashrc文件，每次打开终端时会自动执行。'
+        },
+        {
+          question: '如何验证ROS安装成功？',
+          answer: '运行 roscore，如果显示"started core service"说明安装成功。也可以用 rosversion -d 查看版本号。'
+        }
+      ],
+      reviewSummary: '安装三步：1.添加软件源和密钥 2.apt install ros-noetic-desktop-full 3.配置环境变量。关键命令：source /opt/ros/noetic/setup.bash。记住：ROS1已于2025-05-31 EOL。',
+      nextLessonLink: 'catkin-workspace'
     },
+    quiz: [
+      {
+        id: 'ubuntu-quiz-1',
+        question: 'ROS Noetic 需要哪个Ubuntu版本？',
+        options: ['Ubuntu 16.04', 'Ubuntu 18.04', 'Ubuntu 20.04', 'Ubuntu 22.04'],
+        correctAnswer: 2,
+        explanation: 'ROS Noetic 官方只支持 Ubuntu 20.04。Ubuntu 18.04对应ROS Melodic，Ubuntu 22.04对应ROS2 Humble。'
+      },
+      {
+        id: 'ubuntu-quiz-2',
+        question: 'source ~/catkin_ws/devel/setup.bash 和 source /opt/ros/noetic/setup.bash 的正确顺序是？',
+        options: ['任意顺序都可以', '先工作空间，后系统', '先系统，后工作空间', '只需要source其中一个'],
+        correctAnswer: 2,
+        explanation: '先source系统级，再source工作空间级。工作空间会覆盖（overlay）系统设置，让本地包优先。'
+      }
+    ],
+    learningObjectives: [
+      '能完成ROS Noetic的完整安装',
+      '能正确配置环境变量',
+      '能理解source的作用和顺序',
+      '能创建并编译catkin工作空间',
+      '知道ROS1已于2025-05-31 EOL'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS Noetic 安装指南', url: 'http://wiki.ros.org/noetic/Installation/Ubuntu' }
     ],
@@ -442,6 +561,77 @@ echo $ROS_MASTER_URI`,
         '尝试指定不同端口启动 roscore'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '运行ROS程序前，必须先启动什么？',
+      scenario: '你想让两个节点互相通信，但不知道怎么让它们"找到"彼此'
+    },
+    prerequisite: {
+      questions: [
+        '你理解"进程"和"端口"的概念吗？',
+        '你知道网络IP地址是什么吗？',
+        '你能在终端运行命令吗？'
+      ],
+      helpText: '如果网络概念不清楚，可以先了解TCP/IP基础。'
+    },
+    intuition: 'roscore就像"通讯录管理中心"。当新节点（新人）加入时，先向roscore注册（登记电话号码）。当节点A想和节点B通信时，roscore告诉A"节点B的地址是xxx"，然后A和B直接通信。roscore只负责"介绍"，不负责"传话"。',
+    visualizations: [
+      'Master节点发现流程：节点启动 → 向Master注册 → Master通知其他节点 → 建立点对点连接',
+      '单机vs多机：单机用默认localhost，多机需要设置ROS_MASTER_URI'
+    ],
+    misconceptions: [
+      {
+        misconception: 'roscore参与数据传输',
+        rootCause: '不理解P2P架构',
+        correctApproach: 'roscore只负责节点发现，数据直接在节点间传输'
+      },
+      {
+        misconception: 'roscore必须一直运行',
+        rootCause: '混淆Master和节点',
+        correctApproach: 'roslaunch可以自动启动roscore，但关闭roscore后节点无法新注册'
+      },
+      {
+        misconception: '忘记检查roscore是否运行',
+        rootCause: '不了解依赖关系',
+        correctApproach: '开发时先运行roscore，或使用roslaunch自动启动'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '如果roscore意外停止，正在运行的节点会怎样？',
+        answer: '已连接的节点会继续通信，但新节点无法注册。已建立的话题连接不受影响，但无法建立新连接。'
+      },
+      {
+        question: '为什么roscore启动后有三个进程在运行？',
+        answer: 'roscore实际上是复合命令，启动了：1. ROS Master（节点发现） 2. Parameter Server（参数存储） 3. rosout（日志收集）。'
+      }
+    ],
+    reviewSummary: 'roscore三件套：Master（节点发现）、Parameter Server（参数）、rosout（日志）。关键命令：roscore。环境变量：ROS_MASTER_URI。记住：roscore只负责"介绍"，不负责"传话"。',
+    nextLessonLink: 'ros-node',
+    quiz: [
+      {
+        id: 'roscore-quiz-1',
+        question: 'roscore的主要功能是什么？',
+        options: ['传输话题数据', '节点注册和发现', '编译ROS代码', '存储传感器数据'],
+        correctAnswer: 1,
+        explanation: 'roscore启动的ROS Master负责节点注册和发现。数据直接在节点间传输，不经过Master。'
+      },
+      {
+        id: 'roscore-quiz-2',
+        question: 'roscore默认使用哪个端口？',
+        options: ['8080', '11311', '9090', '5000'],
+        correctAnswer: 1,
+        explanation: 'ROS Master默认使用11311端口。可以用roscore -p指定其他端口。'
+      }
+    ],
+    learningObjectives: [
+      '能启动roscore并理解其三件套',
+      '能解释ROS Master的作用',
+      '能配置ROS_MASTER_URI',
+      '能理解节点发现机制',
+      '知道roscore与roslaunch的关系'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'roscore 文档', url: 'http://wiki.ros.org/roscore' }
     ],
@@ -540,6 +730,51 @@ rosnode kill /listener`,
         '使用 rosnode 命令查看和管理节点'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: 'ROS程序到底是怎么运行的？每个进程在ROS里叫什么？',
+      scenario: '你想写一个ROS程序读取传感器数据，需要了解ROS节点的概念和用法'
+    },
+    prerequisite: {
+      questions: [
+        '你理解"进程"和"线程"的区别吗？',
+        '你能运行roscore吗？',
+        '你了解Python或C++基础吗？'
+      ],
+      helpText: '如果编程基础薄弱，建议先学习Python基础。'
+    },
+    intuition: '节点就像"工厂里的工人"。每个工人（节点）专注做一件事：传感器工人采集数据，处理工人分析数据，控制工人执行动作。工人之间通过"传纸条"（话题）或"打电话"（服务）交流。',
+    visualizations: [
+      '节点结构：节点名+发布列表+订阅列表+服务列表',
+      '节点生命周期：init → NodeHandle → 注册 → 循环 → shutdown'
+    ],
+    misconceptions: [
+      {
+        misconception: '一个节点做所有事情',
+        rootCause: '不了解模块化思想',
+        correctApproach: '每个节点只做一件事，如"激光雷达驱动节点"只负责读取数据'
+      },
+      {
+        misconception: '节点名不重要',
+        rootCause: '不了解命名规范',
+        correctApproach: '节点名要有意义，如/lidar_driver、/motor_controller'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '如何判断一个节点设计是否合理？',
+        answer: '遵循"单一职责"原则：如果节点名是"传感器读取和处理和显示"，就太复杂了。应该拆成三个节点。'
+      }
+    ],
+    reviewSummary: '节点是ROS的基本计算单元。关键命令：rosnode list、rosnode info、rosnode kill。记住：一个节点只做一件事。',
+    nextLessonLink: 'ros-topic',
+    learningObjectives: [
+      '能使用rosnode命令管理节点',
+      '能理解节点的生命周期',
+      '能判断节点设计是否合理',
+      '能使用rqt_graph可视化节点'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 节点教程', url: 'http://wiki.ros.org/ROS/Tutorials/UnderstandingNodes' }
     ],
@@ -649,6 +884,51 @@ while not rospy.is_shutdown():
         '使用 rostopic 命令控制海龟画圆'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '节点之间怎么传递数据？',
+      scenario: '你的激光雷达节点读取数据后，需要把数据传给导航节点，怎么办？'
+    },
+    prerequisite: {
+      questions: [
+        '你理解ros-node的概念吗？',
+        '你了解发布-订阅模式吗？',
+        '你能运行roscore吗？'
+      ],
+      helpText: '如果发布-订阅模式不熟悉，建议先学习ros-node。'
+    },
+    intuition: '话题就像"广播电台"。发布者（电台）播放节目，订阅者（收音机）调频收听。电台不知道谁在听，听众也不知道谁在播——它们只关心频道（话题名）。',
+    visualizations: [
+      '数据流：Publisher → Topic → Subscriber(s)',
+      '消息格式：Header + 字段列表'
+    ],
+    misconceptions: [
+      {
+        misconception: '话题必须一对一',
+        rootCause: '误解通信模式',
+        correctApproach: '话题是一对多、多对多的！一个话题可以有多个发布者和多个订阅者'
+      },
+      {
+        misconception: '话题名随便起',
+        rootCause: '不了解命名规范',
+        correctApproach: '话题名要有层次：/robot/sensor/lidar/scan'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么话题叫"异步通信"？',
+        answer: '因为发布者不等待订阅者处理，直接继续工作。就像发微信，你发出去就继续干别的，不用等对方回复。'
+      }
+    ],
+    reviewSummary: '话题是ROS的核心通信方式。关键命令：rostopic list、rostopic echo、rostopic pub。记住：话题是异步的、一对多的。',
+    nextLessonLink: 'ros-message',
+    learningObjectives: [
+      '能使用rostopic命令管理话题',
+      '能编写发布者和订阅者节点',
+      '能理解话题的异步特性',
+      '能分析话题的数据流'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 话题教程', url: 'http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics' }
     ],
@@ -751,6 +1031,51 @@ generate_messages(
         '编写节点发布和接收自定义消息'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '话题传递的数据格式是什么？如何定义自己的数据类型？',
+      scenario: '你想让机器人传递"位置+速度+状态"的复合数据，怎么定义这个数据结构？'
+    },
+    prerequisite: {
+      questions: [
+        '你理解ros-topic的概念吗？',
+        '你了解Python字典或C结构体吗？',
+        '你能运行catkin_make吗？'
+      ],
+      helpText: '如果数据结构不熟悉，建议先复习Python字典或C结构体。'
+    },
+    intuition: '消息就像"快递包裹的装箱清单"。清单上写着：里面有一个盒子装位置（x,y,z），一个盒子装速度，一个盒子装状态。每个盒子都有编号和说明。',
+    visualizations: [
+      '消息结构：Header + 字段1 + 字段2 + ...',
+      '消息类型：基本类型(int, float, string) + 复合类型(Point, Pose)'
+    ],
+    misconceptions: [
+      {
+        misconception: '消息和话题是一回事',
+        rootCause: '混淆概念',
+        correctApproach: '话题是"通道"，消息是通道里传输的"数据格式"'
+      },
+      {
+        misconception: '消息可以随时改',
+        rootCause: '不了解编译依赖',
+        correctApproach: '修改消息后必须重新编译，因为要生成C++/Python代码'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '什么时候应该自定义消息？',
+        answer: '当内置消息类型不满足需求时。比如你需要"位置+时间戳+置信度"，没有现成的消息，就需要自定义。'
+      }
+    ],
+    reviewSummary: '消息定义了ROS通信的数据格式。关键命令：rosmsg list、rosmsg show、rosmsg package。记住：修改消息后要重新编译。',
+    nextLessonLink: 'ros-service',
+    learningObjectives: [
+      '能使用rosmsg命令查看消息结构',
+      '能创建自定义消息.msg文件',
+      '能配置CMakeLists.txt生成消息',
+      '能在节点中使用自定义消息'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 消息定义', url: 'http://wiki.ros.org/msg' }
     ],
@@ -865,6 +1190,51 @@ except rospy.ServiceException as e:
         '创建自定义服务定义'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何实现"请求-响应"式的通信？',
+      scenario: '你想查询机器人的当前位置，需要发送请求并等待响应，而不是持续订阅话题。'
+    },
+    prerequisite: {
+      questions: [
+        '你理解ros-topic和ros-service的区别吗？',
+        '你了解同步和异步调用的区别吗？',
+        '你能运行rosservice命令吗？'
+      ],
+      helpText: '如果同步/异步不熟悉，建议先学习话题，再学习服务。'
+    },
+    intuition: '服务就像"打电话"。你拨号（发送请求），对方接听处理，然后告诉你结果（返回响应）。通话期间双方都在线，必须等待。',
+    visualizations: [
+      '服务流程：Client → Request → Server → Response → Client',
+      '服务定义：Request消息 + Response消息'
+    ],
+    misconceptions: [
+      {
+        misconception: '用服务传输传感器数据',
+        rootCause: '不了解适用场景',
+        correctApproach: '传感器数据是连续的，应该用话题；服务适合"查询一次"的场景'
+      },
+      {
+        misconception: '服务可以执行很长时间',
+        rootCause: '不了解阻塞特性',
+        correctApproach: '服务调用会阻塞等待，长时间任务应该用Action'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '什么时候用话题，什么时候用服务？',
+        answer: '话题：持续数据流（传感器、控制）；服务：一次性请求（查询、配置、计算）。简单记忆：要一直发的用话题，问一次的用服务。'
+      }
+    ],
+    reviewSummary: '服务是ROS的请求-响应通信方式。关键命令：rosservice list、rosservice call、rosservice type。记住：服务是同步的、一次性的。',
+    nextLessonLink: 'ros-parameter',
+    learningObjectives: [
+      '能使用rosservice命令管理服务',
+      '能编写服务端和客户端节点',
+      '能判断何时用话题、何时用服务',
+      '能创建自定义服务定义'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 服务教程', url: 'http://wiki.ros.org/ROS/Tutorials/UnderstandingServices' }
     ],
@@ -965,6 +1335,51 @@ print(f"Result: {client.get_result()}")`,
         '实现动作的取消功能'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何执行长时间任务并知道进度？',
+      scenario: '你想让机器人导航到目标点，需要知道"走了多远"，而不是干等结果。'
+    },
+    prerequisite: {
+      questions: [
+        '你理解ros-service的局限性吗？',
+        '你了解"目标-反馈-结果"模式吗？',
+        '你能运行rosaction命令吗？'
+      ],
+      helpText: '如果服务不熟悉，建议先学习ros-service。'
+    },
+    intuition: '动作就像"外卖订单"。你下单（发送Goal），商家接单，然后你可以看到"正在备餐...骑手已取餐...配送中..."（Feedback），最后收到"已送达"（Result）。',
+    visualizations: [
+      '动作流程：Goal → Accepted → Feedback循环 → Result',
+      '动作定义：Goal消息 + Result消息 + Feedback消息'
+    ],
+    misconceptions: [
+      {
+        misconception: '动作就是高级的服务',
+        rootCause: '简化理解',
+        correctApproach: '动作是独立概念，有Feedback和取消功能，不只是"高级服务"'
+      },
+      {
+        misconception: '所有长时间任务都用动作',
+        rootCause: '过度使用',
+        correctApproach: '如果不需要反馈和取消，用服务更简单'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '动作和服务的主要区别是什么？',
+        answer: '1) 动作有Feedback，服务没有；2) 动作可以取消，服务不行；3) 动作适合"执行中"的任务，服务适合"问一次"的请求。'
+      }
+    ],
+    reviewSummary: '动作用于长时间任务，带反馈和取消功能。关键概念：Goal、Feedback、Result。记住：导航、机械臂控制等长时间任务用动作。',
+    nextLessonLink: 'ros-tf',
+    learningObjectives: [
+      '能理解动作的三要素：Goal/Feedback/Result',
+      '能使用SimpleActionClient发送目标',
+      '能编写带反馈的动作服务端',
+      '能实现动作的取消功能'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'actionlib 文档', url: 'http://wiki.ros.org/actionlib' }
     ],
@@ -1081,6 +1496,51 @@ if rospy.has_param('~robot_name'):
         '使用 launch 文件设置参数'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何在不修改代码的情况下改变机器人行为？',
+      scenario: '你的机器人在不同场景需要不同的最大速度。与其每次改代码重编译，不如用参数配置。'
+    },
+    prerequisite: {
+      questions: [
+        '你了解YAML文件格式吗？',
+        '你知道命名空间的概念吗？',
+        '你能理解私有参数~前缀吗？'
+      ],
+      helpText: '建议先熟悉YAML格式，理解~私有命名空间。'
+    },
+    intuition: '参数服务器就像"机器人配置中心"。相当于给机器人设"默认设置"，不用重启程序就能改。',
+    visualizations: [
+      '参数层级结构：/robot/sensors/left_camera/exposure',
+      '数据流：YAML文件 → rosparam load → 参数服务器 → rospy.get_param'
+    ],
+    misconceptions: [
+      {
+        misconception: '参数可以随时改变，节点会自动更新',
+        rootCause: '混淆参数和动态参数',
+        correctApproach: '普通参数是静态的；需要动态调整用dynamic_reconfigure'
+      },
+      {
+        misconception: '参数名用全局命名最好',
+        rootCause: '避免复杂性',
+        correctApproach: '节点私有参数用~前缀，避免冲突'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '参数服务和话题有什么区别？',
+        answer: '参数是"配置"，只在需要时读取；话题是"数据流"，持续发布。参数适合"设置"，话题适合"通信"。'
+      }
+    ],
+    reviewSummary: '参数服务器用于存储配置。关键命令：rosparam list/get/set/load。记住：用私有命名空间避免冲突，用YAML文件管理复杂配置。',
+    nextLessonLink: 'ros-launch',
+    learningObjectives: [
+      '能使用rosparam命令管理参数',
+      '能编写YAML配置文件',
+      '能在Python节点中读取参数',
+      '能理解私有命名空间'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 参数服务器', url: 'http://wiki.ros.org/Parameter%20Server' }
     ],
@@ -1188,6 +1648,51 @@ roslaunch -a my_package my_launch.launch`,
         '包含并传递参数给子 launch 文件'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何一键启动十个节点的机器人系统？',
+      scenario: '你的机器人有激光雷达、摄像头、里程计、导航、语音...一个个rosrun太痛苦，用roslaunch一键搞定。'
+    },
+    prerequisite: {
+      questions: [
+        '你了解XML文件格式吗？',
+        '你知道节点和参数的区别吗？',
+        '你能手动启动roscore后运行节点吗？'
+      ],
+      helpText: '建议先学习ros-node和ros-parameter，理解节点和参数概念。'
+    },
+    intuition: 'Launch文件就像"启动脚本"。相当于把你要敲的一堆命令，写成一个配置文件，一键执行。',
+    visualizations: [
+      'Launch层级：<launch> → <node>/<param>/<include> → 属性',
+      '依赖图：launch文件 → 包含 → 其他launch文件'
+    ],
+    misconceptions: [
+      {
+        misconception: 'Launch文件必须放在launch/目录',
+        rootCause: '习惯性理解',
+        correctApproach: '约定放launch/目录，但实际可以在任意位置'
+      },
+      {
+        misconception: 'Launch文件不能启动roscore',
+        rootCause: '误解',
+        correctApproach: 'roslaunch会自动启动roscore（如果未运行）'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: 'arg和param有什么区别？',
+        answer: 'arg是launch文件内部变量，不传递给节点；param是参数服务器上的值，节点可以读取。'
+      }
+    ],
+    reviewSummary: 'Launch文件用于一键启动系统。关键元素：node、param、arg、include。记住：用arg参数化配置，用include组织复杂系统。',
+    nextLessonLink: 'ros-tf',
+    learningObjectives: [
+      '能编写Launch文件启动多个节点',
+      '能使用arg参数化配置',
+      '能使用include包含其他launch文件',
+      '能设置参数和命名空间'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'roslaunch 文档', url: 'http://wiki.ros.org/roslaunch' }
     ],
@@ -1292,6 +1797,77 @@ my_package/
         '编译并运行包中的节点'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '你的ROS代码应该放在哪里？如何组织多个ROS包？',
+      scenario: '你开始写第一个ROS程序，需要创建一个规范的工作空间和包结构'
+    },
+    prerequisite: {
+      questions: [
+        '你已完成ROS Noetic安装吗？',
+        '你知道CMake是什么吗？（不需要精通）',
+        '你了解Linux目录结构吗？'
+      ],
+      helpText: '如果ROS未安装，请先完成《Ubuntu环境与ROS安装》章节。'
+    },
+    intuition: 'catkin工作空间就像一个"项目工厂"。src/是原材料仓库，build/是加工车间，devel/是成品仓库。catkin_make就像"开工生产"——从原材料加工出可用的产品。每个ROS包就像一个"独立车间"，有自己的CMakeLists.txt（生产配方）和package.xml（物料清单）。',
+    visualizations: [
+      '工作空间结构：src（源码）→ catkin_make → build（编译中间）→ devel（输出）',
+      'overlay机制：工作空间覆盖系统级，让本地包优先级更高'
+    ],
+    misconceptions: [
+      {
+        misconception: '在任意目录都能编译ROS包',
+        rootCause: '不理解工作空间概念',
+        correctApproach: '所有包必须放在工作空间的src/目录下'
+      },
+      {
+        misconception: 'catkin_make和catkin_make_isolated一样',
+        rootCause: '不了解编译策略差异',
+        correctApproach: 'Noetic推荐catkin_make，复杂项目可用catkin_tools的catkin build'
+      },
+      {
+        misconception: '忘记source devel/setup.bash',
+        rootCause: '不理解overlay',
+        correctApproach: '编译后必须source才能找到新包'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么需要工作空间？直接在任意目录编译不行吗？',
+        answer: 'ROS需要统一的环境管理。工作空间提供了：1.统一的编译配置 2.环境变量管理 3.依赖解析 4.包之间的链接。'
+      },
+      {
+        question: 'catkin_create_pkg后面的参数是什么意思？',
+        answer: 'catkin_create_pkg <包名> <依赖1> <依赖2>... 例如：catkin_create_pkg my_robot std_msgs rospy roscpp geometry_msgs 会创建一个依赖这些包的新ROS包。'
+      }
+    ],
+    reviewSummary: '工作空间三目录：src（源码）、build（编译中间）、devel（输出）。关键命令：catkin_make（编译）、catkin_create_pkg（创建包）。记住：编译后要source devel/setup.bash。',
+    nextLessonLink: 'ros-package',
+    quiz: [
+      {
+        id: 'catkin-quiz-1',
+        question: 'catkin工作空间的正确结构是什么？',
+        options: ['src/, bin/, lib/', 'src/, build/, devel/', 'code/, build/, output/', 'packages/, compile/, run/'],
+        correctAnswer: 1,
+        explanation: 'catkin工作空间标准结构：src/（源代码）、build/（编译中间文件）、devel/（开发环境输出）。'
+      },
+      {
+        id: 'catkin-quiz-2',
+        question: '创建新ROS包的正确命令是？',
+        options: ['roscreate pkg my_package', 'catkin_create_pkg my_package', 'catkin new_pkg my_package', 'ros pkg create my_package'],
+        correctAnswer: 1,
+        explanation: 'Noetic使用catkin_create_pkg命令。roscreate-pkg是旧版rosbuild系统的命令，已废弃。'
+      }
+    ],
+    learningObjectives: [
+      '能创建catkin工作空间',
+      '能理解src/build/devel三个目录的作用',
+      '能用catkin_create_pkg创建新包',
+      '能正确编译工作空间',
+      '能理解overlay机制和source顺序'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'Catkin 工作空间', url: 'http://wiki.ros.org/catkin/workspaces' }
     ],
@@ -1393,6 +1969,60 @@ rosbag merge bag1.bag bag2.bag -o merged.bag`,
         '使用 filter 提取特定话题'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何"录像"机器人的运行数据？',
+      scenario: '你的机器人导航失败了。想回放当时的传感器数据分析原因。rosbag帮你录制并回放。'
+    },
+    prerequisite: {
+      questions: [
+        '你知道话题的数据是如何发布的吗？',
+        '你能理解"时间戳"的概念吗？',
+        '你用过 rostopic list 吗？'
+      ],
+      helpText: '建议先学习 Topic 和 Message，理解话题数据的结构。'
+    },
+    intuition: 'rosbag就像"机器人录像机"。它记录所有话题数据（带时间戳），之后可以精确回放。就像时间旅行一样。',
+    visualizations: [
+      '录制流程：话题数据 → rosbag record → .bag文件',
+      '回放流程：.bag文件 → rosbag play → 话题重新发布'
+    ],
+    misconceptions: [
+      {
+        misconception: 'rosbag录制所有话题',
+        rootCause: '未指定话题',
+        correctApproach: '默认只录制指定话题，用 -a 录制所有（文件会很大）'
+      },
+      {
+        misconception: 'bag文件可以在任何系统回放',
+        rootCause: '忽略消息类型',
+        correctApproach: 'bag文件依赖消息类型定义，回放系统必须有相同的消息包'
+      },
+      {
+        misconception: '回放速度不影响分析',
+        rootCause: '忽略时间因素',
+        correctApproach: '用 -r 0.5 慢放可以更清楚地观察问题'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么rosbag文件有时很大？',
+        answer: '因为传感器数据（如摄像头图像）数据量大。建议只录制需要的话题，或用 --duration 限制时长。'
+      },
+      {
+        question: '回放时为什么有些节点会报错？',
+        answer: '回放会重新发布话题。如果节点期望实时数据但收到的是bag数据（时间戳是过去的），可能会出问题。'
+      }
+    ],
+    reviewSummary: 'rosbag录制和回放话题数据。常用命令：record、play、info、filter。关键：录制指定话题，回放前用info查看，注意时间戳。',
+    nextLessonLink: 'ros-debugging',
+    learningObjectives: [
+      '能使用rosbag录制指定话题',
+      '能使用rosbag info查看bag文件信息',
+      '能使用rosbag play回放数据',
+      '能使用rosbag filter过滤数据'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'rosbag 文档', url: 'http://wiki.ros.org/rosbag' }
     ],
@@ -1600,6 +2230,51 @@ while not rospy.is_shutdown():
         '在代码中查询和变换坐标'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '激光雷达数据如何转换到世界坐标系？',
+      scenario: '机器人的激光雷达在"base_link"坐标系，但你需要在"map"坐标系看数据。TF自动帮你转换。'
+    },
+    prerequisite: {
+      questions: [
+        '你理解坐标系变换吗？（旋转、平移）',
+        '你知道"父坐标系"和"子坐标系"的关系吗？',
+        '你能理解TF树的概念吗？'
+      ],
+      helpText: '建议先回顾坐标系变换概念，理解"父子关系"。'
+    },
+    intuition: 'TF就像"空间GPS"。每个坐标系是一个"站"，TF告诉你从一个站到另一个站怎么走（距离和方向）。',
+    visualizations: [
+      'TF树结构：world → map → odom → base_link → sensors',
+      '数据流：传感器数据（frame_id: laser）→ TF查询 → 目标坐标系'
+    ],
+    misconceptions: [
+      {
+        misconception: 'TF只是坐标变换库',
+        rootCause: '简化理解',
+        correctApproach: 'TF是带时间戳的变换历史，可以查询任意时刻的变换'
+      },
+      {
+        misconception: 'TF树可以有多个根节点',
+        rootCause: '误解',
+        correctApproach: 'TF树必须是单根树结构，不能有多个根节点'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么查询TF时要用rospy.Time(0)？',
+        answer: 'Time(0)表示"最新可用变换"。TF是时间序列数据，用Time(0)可以避免时间戳不匹配的问题。'
+      }
+    ],
+    reviewSummary: 'TF管理机器人的所有坐标系。关键概念：frame_id、TF树、变换查询。记住：TF树是单根树，用Time(0)获取最新变换。',
+    nextLessonLink: 'urdf-xacro',
+    learningObjectives: [
+      '能理解TF树的概念和结构',
+      '能使用tf2_ros发布坐标变换',
+      '能使用tf2_ros查询坐标变换',
+      '能使用rqt_tf_tree查看TF树'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'TF 教程', url: 'http://wiki.ros.org/tf/Tutorials' }
     ],
@@ -1749,6 +2424,60 @@ roslaunch urdf_tutorial display.launch model:=my_robot.urdf`,
         '在 RViz 和 Gazebo 中加载模型'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '如何让仿真器"认识"你的机器人？',
+      scenario: '你有一台自定义的移动机器人，需要在 Gazebo 中仿真。第一步就是用 URDF 描述它的结构。'
+    },
+    prerequisite: {
+      questions: [
+        '你理解刚体和关节的概念吗？',
+        '你能写出简单的 XML 文件吗？',
+        '你知道坐标系变换的基本原理吗？'
+      ],
+      helpText: '建议先学习 TF 基础，理解坐标系和关节概念。'
+    },
+    intuition: 'URDF 就像"机器人的说明书"。它告诉 ROS：机器人有哪些零件，零件怎么连接，每个零件长什么样、多重。',
+    visualizations: [
+      'URDF结构：base_link（底盘）→ joint（关节）→ wheel_link（轮子）',
+      'Xacro宏：定义一次"轮子"，复制出左右两个'
+    ],
+    misconceptions: [
+      {
+        misconception: 'URDF只是可视化模型',
+        rootCause: '混淆visual和collision',
+        correctApproach: 'URDF包含visual（可视化）、collision（碰撞检测）、inertial（惯性）三部分'
+      },
+      {
+        misconception: 'Xacro是另一种格式',
+        rootCause: '误解',
+        correctApproach: 'Xacro是URDF的宏语言，最终会编译成URDF'
+      },
+      {
+        misconception: '惯性参数不重要',
+        rootCause: '忽略物理仿真',
+        correctApproach: '惯性参数直接影响 Gazebo 物理仿真的真实度'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么collision可以和visual不同？',
+        answer: 'collision用于物理碰撞检测，可以简化以提高性能。比如一个复杂的机器人外壳，collision可以用简单的box代替。'
+      },
+      {
+        question: 'Xacro的宏有什么好处？',
+        answer: '避免重复代码。比如你有4个一样的轮子，用宏定义一次，调用4次。修改时只需改一处。'
+      }
+    ],
+    reviewSummary: 'URDF描述机器人的结构和外观。关键元素：link、joint、visual、collision、inertial。Xacro让URDF更易维护。必须通过check_urdf验证。',
+    nextLessonLink: 'gazebo-simulation',
+    learningObjectives: [
+      '能编写简单的URDF文件',
+      '能理解link和joint的关系',
+      '能使用Xacro宏简化模型',
+      '能在RViz中加载并查看模型'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'URDF 教程', url: 'http://wiki.ros.org/urdf/Tutorials' }
     ],
@@ -2511,6 +3240,60 @@ rosnode ping /my_node`,
         '使用 rqt_console 分析日志'
       ]
     },
+    // 精品课程模板字段
+    introHook: {
+      problem: '节点启动失败，怎么找原因？',
+      scenario: '你的导航节点启动后立刻退出。没有明显报错。你需要一步步排查问题在哪里。'
+    },
+    prerequisite: {
+      questions: [
+        '你理解 rosout 节点的作用吗？',
+        '你知道如何查看节点日志吗？',
+        '你能用 roswtf 检查系统问题吗？'
+      ],
+      helpText: '建议先学习 Node 和 Topic，理解 ROS 的基本架构。'
+    },
+    intuition: '调试就像"问诊"：先看症状（日志），再检查身体（roswtf），最后对症下药。ROS提供了完善的诊断工具链。',
+    visualizations: [
+      '调试流程：问题 → 日志 → roswtf → 定位 → 修复',
+      '日志级别：DEBUG < INFO < WARN < ERROR < FATAL'
+    ],
+    misconceptions: [
+      {
+        misconception: '日志越多越好',
+        rootCause: '信息过载',
+        correctApproach: '使用适当的日志级别。生产环境用 INFO/WARN/ERROR，开发时用 DEBUG。'
+      },
+      {
+        misconception: 'roswtf能解决所有问题',
+        rootCause: '工具局限',
+        correctApproach: 'roswtf只检查常见问题。复杂问题需要结合日志、性能分析等多工具。'
+      },
+      {
+        misconception: '调试只需要看错误信息',
+        rootCause: '忽略上下文',
+        correctApproach: '有时候WARN更关键。比如频率下降警告可能预示即将出问题。'
+      }
+    ],
+    pauseAndThink: [
+      {
+        question: '为什么推荐用 rospy.loginfo() 而不是 print()？',
+        answer: 'rospy.loginfo() 输出到 rosout，可通过 rqt_console 查看，支持过滤和搜索。print() 只输出到终端，难以管理。'
+      },
+      {
+        question: 'roswtf 报告的警告都要处理吗？',
+        answer: '不一定。有些警告是正常的，比如未连接的话题。需要理解每个警告的含义，判断是否影响系统运行。'
+      }
+    ],
+    reviewSummary: '调试三件套：日志（rqt_console）、检查（roswtf）、分析（rqt_graph/top）。日志级别从DEBUG到FATAL。先看ERROR/WARN，再用DEBUG追细节。',
+    nextLessonLink: 'ros1-to-ros2',
+    learningObjectives: [
+      '能使用不同的日志级别',
+      '能使用 rqt_console 查看和过滤日志',
+      '能使用 roswtf 检查系统问题',
+      '能使用 top 和 rqt_graph 分析性能'
+    ],
+    rosVersion: 'ROS1',
     officialSources: [
       { title: 'ROS 调试', url: 'http://wiki.ros.org/ROS/Debugging' }
     ],
