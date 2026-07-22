@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUserContext } from '@/lib/user-context';
 import { knowledgeArticles } from '@/lib/data';
+import type { ReadingProgressItem } from '@/lib/types';
 import { experiments } from '@/lib/experiments';
 import type { ReadingProgress } from '@/lib/types';
 
@@ -23,7 +24,7 @@ export default function MyLearningPage() {
   const stats = useMemo(() => {
     if (!mounted) return { articlesRead: 0, favoritesCount: 0, experimentsCompleted: 0 };
     
-    const articlesRead = Object.values(readingProgress).filter((r: ReadingProgress) => r.completed).length;
+    const articlesRead = Object.values(readingProgress).filter((r: ReadingProgressItem) => r.completed).length;
     const favoritesCount = favorites.length;
     const experimentsCompleted = completedExperiments.length;
     
@@ -37,7 +38,7 @@ export default function MyLearningPage() {
     return Object.entries(readingProgress)
       .sort((a, b) => new Date(b[1].lastReadAt).getTime() - new Date(a[1].lastReadAt).getTime())
       .slice(0, 5)
-      .map(([slug, progress]: [string, ReadingProgress]) => {
+      .map(([slug, progress]: [string, ReadingProgressItem]) => {
         const article = knowledgeArticles.find(a => a.slug === slug);
         return article ? { ...article, progress: progress.progress } : null;
       })

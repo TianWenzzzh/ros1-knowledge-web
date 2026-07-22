@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useUserContext } from '@/lib/user-context';
-import { knowledgeArticles, categories, getArticleBySlug, getRelatedArticles } from '@/lib/data';
+import { knowledgeArticles, getArticleBySlug, getRelatedArticles } from '@/lib/data';
+import { CATEGORY_INFO, type Category } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { 
   ChevronRight, ChevronLeft, Clock, Target, BookOpen, CheckCircle2, 
@@ -152,7 +153,7 @@ export function ArticlePage({ slug }: ArticlePageProps) {
     );
   }
 
-  const category = categories.find(c => c.id === article.category);
+  const category = CATEGORY_INFO[article.category as Category];
   const nextArticle = knowledgeArticles.find((a, i) => {
     const currentIndex = knowledgeArticles.findIndex(art => art.slug === article.slug);
     return i === currentIndex + 1;

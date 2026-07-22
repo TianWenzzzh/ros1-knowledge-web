@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import type { UserNote, ReadingProgress } from './types';
+import type { UserNote, ReadingProgressItem } from './types';
 
 // 用户数据结构
 interface UserData {
   favorites: string[];
   notes: UserNote[];
-  readingProgress: Record<string, ReadingProgress>;
+  readingProgress: Record<string, ReadingProgressItem>;
   completedExperiments: string[];
   lastVisitAt: string;
   visitCount: number;
@@ -16,7 +16,7 @@ interface UserData {
 interface UserContextType {
   favorites: string[];
   notes: UserNote[];
-  readingProgress: Record<string, ReadingProgress>;
+  readingProgress: Record<string, ReadingProgressItem>;
   completedExperiments: string[];
   experiments: string[]; // 别名，与 completedExperiments 相同
   toggleFavorite: (articleId: string) => void;
@@ -121,17 +121,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const existing = prev.readingProgress[articleId];
       const now = new Date().toISOString();
       
+      const newItem: ReadingProgressItem = {
+        read: true,
+        lastReadAt: now,
+        progress: Math.min(100, Math.max(0, progress)),
+        completed: progress >= 95,
+        startedAt: existing?.startedAt || now
+      };
+      
       return {
         ...prev,
         readingProgress: {
           ...prev.readingProgress,
-          [articleId]: {
-            articleId,
-            startedAt: existing?.startedAt || now,
-            lastReadAt: now,
-            progress: Math.min(100, Math.max(0, progress)),
-            completed: progress >= 95
-          }
+          [articleId]: newItem
         }
       };
     });

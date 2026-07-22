@@ -30,9 +30,9 @@ export default function LearningMethodsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p className="text-sm text-slate-600 line-clamp-3">{method.content.slice(0, 150)}...</p>
+                  <p className="text-sm text-slate-600 line-clamp-3">{(method.content || '').slice(0, 150)}...</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">{method.tips.length} 条技巧</span>
+                    <span className="text-xs text-slate-500">{(method.tips || []).length} 条技巧</span>
                     <Button variant="ghost" size="sm" className="text-cyan-600">
                       查看详情 →
                     </Button>

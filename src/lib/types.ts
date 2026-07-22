@@ -26,6 +26,20 @@ export const CATEGORY_INFO: Record<Category, { name: string; icon: string; descr
   'debug-migration': { name: '调试与迁移', icon: '🐛', description: '调试技巧与ROS2迁移', order: 10 },
 };
 
+// 分类列表（用于导出）
+export const categories: Category[] = [
+  'linux-ubuntu',
+  'ros-basics',
+  'communication',
+  'tools',
+  'transform',
+  'simulation',
+  'navigation',
+  'vision',
+  'manipulation',
+  'debug-migration'
+];
+
 // 学习路径类型
 export type LearningPath = 'beginner' | 'troubleshoot';
 
@@ -49,24 +63,104 @@ export interface CommonError {
 // 来源类型
 export type SourceType = 'official' | 'community' | 'tutorial' | 'wiki';
 
-// 文章来源信息
+// 文章来源信息（新版，用于顶层 sources）
 export interface ArticleSource {
+  title: string;
+  url: string;
+  sourceType?: SourceType;
+  version?: string;
+  verifiedAt?: string;
+}
+
+// 旧版来源格式（兼容）
+export interface ArticleSourceLegacy {
   title: string;
   url: string;
   type?: SourceType;
   description?: string;
 }
 
+// 前置诊断问题
+export interface PrerequisiteQuestion {
+  question: string;
+  hint: string;
+}
+
+// 前置诊断
+export interface PrerequisiteCheck {
+  questions: PrerequisiteQuestion[];
+}
+
+// 直觉模型
+export interface IntuitionModel {
+  analogy: string;
+  boundaries: string;
+}
+
+// 时间轴项
+export interface TimelineItem {
+  time: string;
+  title: string;
+  anchor?: string;
+  description?: string;
+}
+
+// 实践步骤
+export interface PracticeStep {
+  command: string;
+  explanation?: string;
+}
+
+// 最小实践示例
+export interface MinimalPractice {
+  title?: string;
+  duration?: string;
+  terminal?: string;
+  currentDirectory?: string;
+  source?: string;
+  commands: PracticeStep[];
+  expectedOutput?: string;
+}
+
+// 误区项
+export interface Misconception {
+  misconception: string;
+  rootCause: string;
+  fix: string;
+}
+
+// 暂停思考项
+export interface PauseAndThink {
+  question: string;
+  answer: string;
+}
+
+// 测验项
+export interface QuizItem {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+// 三级练习
+export interface PracticeLevel {
+  task: string;
+  hints: string[];
+  verifyCommand: string;
+}
+
+// 练习集合
+export interface PracticeSet {
+  basic: PracticeLevel;
+  intermediate: PracticeLevel;
+  advanced: PracticeLevel;
+}
+
 // 学习目标
 export interface LearningObjective {
   description: string;
-}
-
-// 最小实践步骤
-export interface PracticeStep {
-  description: string;
-  command?: string;
-  verification?: string;
 }
 
 // 知识文章
@@ -81,8 +175,29 @@ export interface KnowledgeArticle {
   readingTime: number; // 分钟
   prerequisites: string[];
   
-  // 学习目标
+  // 精品课程模板字段（顶层）
+  introHook?: {
+    problem: string;
+    scenario: string;
+  };
   learningObjectives?: string[];
+  prerequisite?: PrerequisiteCheck;
+  intuition?: IntuitionModel;
+  timeline?: TimelineItem[];
+  minimalPractice?: MinimalPractice;
+  dataFlow?: {
+    type: 'mermaid' | 'text' | 'ascii';
+    content: string;
+    caption?: string;
+  };
+  misconceptions?: Misconception[];
+  practice?: PracticeSet;
+  pauseAndThink?: PauseAndThink[];
+  quiz?: QuizItem[];
+  reviewSummary?: string;
+  nextLesson?: string;
+  nextLessonLink?: string;
+  sources?: ArticleSource[];
   
   // 文章内容
   content: {
@@ -91,17 +206,14 @@ export interface KnowledgeArticle {
     codeExamples: CodeExample[];
     commonErrors: CommonError[];
     tips: string[];
-    practice: string[];
+    practice?: string[]; // 可选
     
-    // 精品课程模板字段（content内部）
+    // 精品课程模板字段（content内部，兼容）
     introHook?: {
       problem: string;
       scenario: string;
     };
-    prerequisite?: {
-      questions: string[];
-      helpText?: string;
-    };
+    prerequisite?: PrerequisiteCheck;
     intuition?: string;
     visualizations?: string[];
     misconceptions?: {
@@ -109,56 +221,10 @@ export interface KnowledgeArticle {
       rootCause: string;
       correctApproach: string;
     }[];
-    pauseAndThink?: {
-      question: string;
-      answer: string;
-    }[];
+    pauseAndThink?: PauseAndThink[];
     reviewSummary?: string;
     nextLessonLink?: string;
-    quiz?: {
-      id: string;
-      question: string;
-      options: string[];
-      correctAnswer: number;
-      explanation: string;
-    }[];
-  };
-  
-  // 精品课程模板字段（顶层，兼容两种位置）
-  introHook?: {
-    problem: string;
-    scenario: string;
-  };
-  prerequisite?: {
-    questions: string[];
-    helpText?: string;
-  };
-  intuition?: string;
-  visualizations?: string[];
-  misconceptions?: {
-    misconception: string;
-    rootCause: string;
-    correctApproach: string;
-  }[];
-  pauseAndThink?: {
-    question: string;
-    answer: string;
-  }[];
-  reviewSummary?: string;
-  nextLessonLink?: string;
-  quiz?: {
-    id: string;
-    question: string;
-    options: string[];
-    correctAnswer: number;
-    explanation: string;
-  }[];
-  
-  // 最小实践
-  minimalPractice?: {
-    title?: string;
-    duration?: string;
-    steps: PracticeStep[];
+    quiz?: QuizItem[];
   };
   
   // 下一步建议
@@ -169,7 +235,7 @@ export interface KnowledgeArticle {
   }[];
   
   // 来源信息
-  officialSources: ArticleSource[];
+  officialSources: ArticleSourceLegacy[];
   applicableVersions: string[];
   rosVersion?: 'ROS1'; // 明确标注 ROS 版本
   
@@ -229,27 +295,75 @@ export interface CommandReference {
 // 错误排查项
 export interface TroubleshootItem {
   id: string;
-  errorPattern: string;
-  keywords: string[];
-  symptoms?: string[]; // 现象描述
-  checkCommands?: string[]; // 检查命令
+  errorPattern?: string;
+  title?: string;
+  symptoms?: string[];
+  keywords?: string[];
   possibleCauses: string[];
-  solutions: string[];
+  solutions?: string[];
   relatedArticles: string[];
 }
 
-// 故障树节点
-export interface TroubleshootNode {
-  id: string;
-  question: string;
-  type: 'question' | 'result';
-  yesId?: string;
-  noId?: string;
-  result?: {
-    diagnosis: string;
-    solution: string;
-    relatedArticle?: string;
+// 收藏状态（localStorage）
+export interface BookmarkState {
+  articleIds: string[];
+}
+
+// 阅读进度项
+export interface ReadingProgressItem {
+  articleId?: string;
+  startedAt?: string;
+  read: boolean;
+  lastReadAt: string;
+  progress: number; // 0-100
+  completed?: boolean;
+}
+
+// 阅读进度（localStorage）
+export interface ReadingProgress {
+  [articleId: string]: ReadingProgressItem;
+}
+
+// 笔记（localStorage）
+export interface ArticleNote {
+  articleId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 实验完成状态（localStorage）
+export interface ExperimentProgress {
+  [experimentId: string]: {
+    completed: boolean;
+    completedAt?: string;
   };
+}
+
+// 错题记录（localStorage）
+export interface QuizMistake {
+  quizId: string;
+  articleId: string;
+  wrongAnswer: number;
+  timestamp: string;
+}
+
+// 用户状态（localStorage）
+export interface UserState {
+  bookmarks: BookmarkState;
+  readingProgress: ReadingProgress;
+  notes: ArticleNote[];
+  experimentProgress: ExperimentProgress;
+  quizMistakes: QuizMistake[];
+}
+
+// 用户笔记（localStorage）
+export interface UserNote {
+  id: string;
+  articleId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 学习方法
@@ -257,64 +371,19 @@ export interface LearningMethod {
   id: string;
   slug: string;
   title: string;
-  icon: string;
-  summary: string;
-  content: string;
-  tips: string[];
-  resources: { title: string; url: string }[];
+  icon?: string;
+  summary?: string;
+  description?: string;
+  content?: string;
+  steps?: string[];
+  tips?: string[];
+  resources?: { title: string; url: string }[];
+  rosExample?: string;
 }
 
-// 用户笔记
-export interface UserNote {
-  id: string;
-  articleId: string;
-  articleSlug?: string; // 别名
-  content: string;
-  createdAt: string;
-  updatedAt: string;
+// 搜索结果
+export interface SearchResult {
+  article: KnowledgeArticle;
+  score: number;
+  matchType: 'title' | 'summary' | 'tag' | 'content';
 }
-
-// 阅读进度
-export interface ReadingProgress {
-  articleId: string;
-  startedAt: string;
-  lastReadAt: string;
-  progress: number; // 0-100
-  completed: boolean;
-}
-
-// 学习路径节点
-export interface LearningPathNode {
-  id: string;
-  articleSlug: string;
-  title: string;
-  category: Category;
-  dependsOn: string[]; // 依赖的前置文章
-  estimatedTime: number; // 预计分钟
-  completed?: boolean;
-}
-
-// 知识地图节点
-export interface KnowledgeMapNode {
-  id: string;
-  title: string;
-  category: Category;
-  level: number; // 学习层级
-  dependsOn: string[];
-  estimatedTime: number;
-  articleSlug?: string;
-}
-
-// 学习路径配置
-export const LEARNING_PATHS = {
-  beginner: {
-    name: '零基础循序路径',
-    description: '从 Linux 基础开始，按顺序学习 ROS1 核心概念',
-    icon: '📚',
-  },
-  troubleshoot: {
-    name: '遇到问题快速查询',
-    description: '根据当前问题快速定位解决方案',
-    icon: '🔍',
-  },
-} as const;
