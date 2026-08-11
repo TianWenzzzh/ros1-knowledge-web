@@ -1236,7 +1236,7 @@ MOONS.forEach(m=>{ if(READ.has(m.url)) m._label.classList.add('rd'); });
 /* 标签可点击化：点标签 = 点对应 3D 天体，直接跳转目标页面 */
 [...PLANETS, ...MOONS, ...GATES].forEach(d=>{
   d._label.classList.add('lnk'); d._label._pe = 'auto'; kbAble(d._label);
-  d._label.addEventListener('click', ()=>{ markRead(d.url); location.href = BASE + d.url; });
+  d._label.addEventListener('click', ()=>{ location.href = BASE + d.url; });
 });
 const starLabel = addLabel('ROS CORE', 'SYSTEM ORIGIN', 'star');
 
@@ -1348,7 +1348,7 @@ addEventListener('pointermove', e=>{
 addEventListener('pointerup', e=>{
   if(dragging && moved < 6){
     const h = pickAt(e.clientX, e.clientY);
-    if(h){ markRead(dataOf(h).url); location.href = BASE + dataOf(h).url; }
+    if(h){ location.href = BASE + dataOf(h).url; }
   }
   dragging = false;
 });

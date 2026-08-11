@@ -169,7 +169,7 @@ function initSearch(){
   }
   function open(){ mask.classList.add('show'); inp.value=''; render(''); setTimeout(()=>inp.focus(),50); }
   function close(){ mask.classList.remove('show'); }
-  function go(){ const it=filtered[sel]; if(it){ close(); markRead(it.u); location.href=it.u; } }
+  function go(){ const it=filtered[sel]; if(it){ close(); location.href=it.u; } }
   inp.addEventListener('input', ()=>render(inp.value));
   inp.addEventListener('keydown', e=>{
     if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,filtered.length-1); updateSel(); }
@@ -189,7 +189,7 @@ function initSearch(){
   });
   res.addEventListener('click', e=>{
     const it = e.target.closest('.search-item'); if(!it) return;
-    close(); markRead(it.dataset.u); location.href = it.dataset.u;
+    close(); location.href = it.dataset.u;
   });
   mask.addEventListener('click', e=>{ if(e.target===mask) close(); });
   document.addEventListener('keydown', e=>{
@@ -385,8 +385,8 @@ function initCardGlow(){
 
 /* ---------- 实验完成状态 ---------- */
 function initExperiments(){
-  document.querySelectorAll('.exp-card[data-exp]').forEach(card=>{
-    if(isExpDone(card.dataset.exp)) card.classList.add('done');
+  document.querySelectorAll('.exp-card[data-id]').forEach(card=>{
+    if(isExpDone(card.dataset.id)) card.classList.add('done');
   });
 }
 
@@ -522,7 +522,6 @@ function initRandomExplore(){
       const unread=ids.filter(k=>!isRead('article.html?id='+k));
       const pool=unread.length>0?unread:ids;
       const pick=pool[Math.floor(Math.random()*pool.length)];
-      markRead('article.html?id='+pick);
       location.href='article.html?id='+pick;
     });
   });

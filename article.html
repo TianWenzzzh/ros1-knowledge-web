@@ -72,7 +72,7 @@ const expId = ART_TO_EXP[id];
 
 function getExpDone(){ try{return new Set(JSON.parse(localStorage.getItem('ros1-experiments')||'[]'));}catch(e){return new Set();} }
 function setExpDone(s){ try{localStorage.setItem('ros1-experiments', JSON.stringify([...s]));}catch(e){} }
-const expAlreadyDone = expId && getExpDone().has(expId);
+function isExpDoneNow(){ return !!(expId && getExpDone().has(expId)); }
 
 if(!art){
   document.getElementById('content').innerHTML = '<div class="art-header"><h1 class="art-title">页面未找到</h1><p class="art-desc">该文章不存在或已移除。<a href="map.html">返回知识星图</a></p></div>';
@@ -112,7 +112,7 @@ document.getElementById('content').innerHTML = `
       <div class="aec-desc">知识又增加了。继续探索，解锁更多成就徽章～</div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      ${fromExp && expId ? `<a class="aec-btn exp-complete-btn" href="javascript:void(0)" id="exp-done-btn" style="background:linear-gradient(120deg,#f59e0b,#fb7185);color:#fff;font-weight:700">${expAlreadyDone?'✓ 已完成实验':'🎯 完成此实验 →'}</a>` : ''}
+      ${fromExp && expId ? `<a class="aec-btn exp-complete-btn" href="javascript:void(0)" id="exp-done-btn" style="background:linear-gradient(120deg,#f59e0b,#fb7185);color:#fff;font-weight:700">${isExpDoneNow()?'✓ 已完成实验':'🎯 完成此实验 →'}</a>` : ''}
       <a class="aec-btn" href="javascript:void(0)" data-random>🎲 随机来一篇</a>
       ${fromExp ? '<a class="aec-btn" href="experiments.html">🔬 返回实验</a>' : ''}
       <a class="aec-btn" href="map.html">🌌 知识星图</a>
@@ -123,8 +123,35 @@ document.getElementById('content').innerHTML = `
   </article>
 `;
 
-/* 标记已读 */
-window.__KB__.markRead('article.html?id='+id);
+/* 标记已读：不立即标记，需满足阅读条件（停留10秒以上 或 滚动超过20%）*/
+const articleKey = 'article.html?id='+id;
+let readMarked = window.__KB__.isRead(id);
+function markArticleRead(){
+  if(readMarked) return;
+  readMarked = true;
+  window.__KB__.markRead(articleKey);
+  /* 侧边栏更新 */
+  document.querySelectorAll('.side-link[data-id="'+id+'"]').forEach(a=>a.classList.add('read'));
+}
+/* 10秒后自动标记 */
+setTimeout(markArticleRead, 10000);
+/* 滚动超过20%标记 */
+window.addEventListener('scroll', function onScroll(){
+  const h = document.documentElement;
+  const total = h.scrollHeight - h.clientHeight;
+  if(total > 0 && h.scrollTop / total > 0.2){
+    markArticleRead();
+    window.removeEventListener('scroll', onScroll);
+  }
+}, {passive:true});
+/* 阅读到底部立即标记 */
+const endCard = document.querySelector('.art-end-card');
+if(endCard){
+  const io = new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){ markArticleRead(); io.disconnect(); }
+  }, {threshold:0.3});
+  io.observe(endCard);
+}
 
 /* 左侧边栏（分类文章列表） */
 const cats = [];
@@ -237,24 +264,33 @@ window.__SEARCH_INDEX__ = Object.entries(window.__ARTICLES__).filter(([,a])=>!a.
 /* 完成实验按钮 */
 const expBtn = document.getElementById('exp-done-btn');
 if(expBtn){
-  expBtn.addEventListener('click', ()=>{
-    if(expAlreadyDone){
-      /* 取消完成 */
-      const s = getExpDone(); s.delete(expId); setExpDone(s);
+  function refreshExpBtn(){
+    const done = isExpDoneNow();
+    if(done){
+      expBtn.innerHTML = '✓ 已完成实验';
+      expBtn.style.background = 'linear-gradient(120deg,#22c55e,#10b981)';
+    }else{
       expBtn.innerHTML = '🎯 完成此实验 →';
       expBtn.style.background = 'linear-gradient(120deg,#f59e0b,#fb7185)';
+    }
+  }
+  expBtn.addEventListener('click', ()=>{
+    const done = isExpDoneNow();
+    if(done){
+      /* 取消完成 */
+      const s = getExpDone(); s.delete(expId); setExpDone(s);
+      refreshExpBtn();
     }else{
       /* 标记完成 */
       const s = getExpDone(); s.add(expId); setExpDone(s);
-      expBtn.innerHTML = '✓ 已完成实验！';
-      expBtn.style.background = 'linear-gradient(120deg,#22c55e,#10b981)';
+      refreshExpBtn();
       /* 庆祝动画 */
       expBtn.animate([
         {transform:'scale(1)'},
         {transform:'scale(1.15)'},
         {transform:'scale(1)'}
       ],{duration:500,easing:'cubic-bezier(.2,.9,.3,1.3)'});
-      /* 2秒后跳回实验页 */
+      /* 1.2秒后跳回实验页 */
       setTimeout(()=>{ location.href = 'experiments.html?completed='+expId; }, 1200);
     }
   });
