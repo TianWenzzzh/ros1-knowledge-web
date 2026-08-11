@@ -88,7 +88,8 @@ const crumb = `<div class="art-crumbs"><a href="index.html">首页</a> / <a href
 /* 标签 */
 const lvNames = ['入门','进阶','高级'];
 const lvCls = ['lv-0','lv-1','lv-2'];
-const preTxt = art.pre>0 ? `<span class="pre">前置知识 ${art.pre} 项</span>` : '<span class="pre">无需前置知识</span>';
+const preLabels = ['零基础可学','建议先读基础篇','需要前置基础','进阶内容','高级综合','大师级'];
+const preTxt = `<span class="pre" title="前置知识要求">📖 ${preLabels[Math.min(art.pre,preLabels.length-1)]}</span>`;
 
 /* 正文 */
 document.getElementById('content').innerHTML = `
@@ -295,6 +296,14 @@ if(expBtn){
     }
   });
 }
+
+/* 键盘快捷键：← → 翻篇 */
+document.addEventListener('keydown', e=>{
+  if(e.target.closest('input,textarea')) return;
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.key==='ArrowLeft' && idx>0){ location.href='article.html?id='+order[idx-1]; }
+  if(e.key==='ArrowRight' && idx<order.length-1){ location.href='article.html?id='+order[idx+1]; }
+});
 })();
 </script>
 </body>
