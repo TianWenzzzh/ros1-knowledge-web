@@ -242,7 +242,8 @@ rosnode list
 <li>善用 <code>rosnode</code> 工具进行调试和状态检查。</li>
 <li>一个节点应该只负责一项功能，保持单一职责原则。</li>
 </ul>
-`,
+`
+},
 
 "ros-topic": {
 t: "ROS 话题 (Topic) 与消息通信",
@@ -444,7 +445,8 @@ rostopic type /robot_status  <span class="cm"># std_msgs/String</span></code></p
 </ul>
 
 <p>在后续的 Publisher/Subscriber 编程章节中，我们将深入学习如何用 Python 和 C++ 编写自定义的话题发布和订阅节点，实现更复杂的数据交换逻辑。</p>
-`,
+`
+},
 
 "ros-message": {
 t: "ROS 消息 (Message) 定义与使用",
@@ -727,7 +729,8 @@ rosmsg info robot_demo/RobotStatus</code></pre></div>
 <tr><td><code>visualization_msgs</code></td><td>可视化标记</td><td>Marker, MarkerArray, InteractiveMarker</td></tr>
 </tbody>
 </table>
-`,
+`
+},
 
 "ros-service": {
 t: "ROS 服务 (Service) 与请求响应",
@@ -933,12 +936,12 @@ source devel/setup.bash</code></pre></div>
 
 <h3>步骤 9：在 CMakeLists.txt 中添加可执行文件</h3>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="fn">add_executable</span>(add_server src/add_two_ints_server.cpp)
-<span class="fn">target_link_libraries</span>(add_server ${catkin_LIBRARIES})
-<span class="fn">add_dependencies</span>(add_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+<span class="fn">target_link_libraries</span>(add_server ${"$"}{catkin_LIBRARIES})
+<span class="fn">add_dependencies</span>(add_server ${"$"}{${"$"}{PROJECT_NAME}_EXPORTED_TARGETS} ${"$"}{catkin_EXPORTED_TARGETS})
 
 <span class="fn">add_executable</span>(add_client src/add_two_ints_client.cpp)
-<span class="fn">target_link_libraries</span>(add_client ${catkin_LIBRARIES})
-<span class="fn">add_dependencies</span>(add_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})</code></pre></div>
+<span class="fn">target_link_libraries</span>(add_client ${"$"}{catkin_LIBRARIES})
+<span class="fn">add_dependencies</span>(add_client ${"$"}{${"$"}{PROJECT_NAME}_EXPORTED_TARGETS} ${"$"}{catkin_EXPORTED_TARGETS})</code></pre></div>
 
 <h3>步骤 10：运行测试</h3>
 <div class="code-block"><span class="code-lang">bash</span><pre><code><span class="cm"># 给 Python 脚本加执行权限</span>
@@ -980,7 +983,8 @@ rosrun add_two_ints add_two_ints_client.py 10 20
 <tr><td><code>/tf2_frames</code></td><td>tf2_msgs/FrameGraph</td><td>获取TF坐标变换树</td></tr>
 </tbody>
 </table>
-`,
+`
+},
 
 "ros-parameter": {
 t: "ROS 参数服务器",
@@ -1194,7 +1198,8 @@ rosparam get /robot2/max_speed  <span class="cm"># 1.5</span></code></pre></div>
 </div>
 
 <p>在后续的 launch 文件章节中，我们将学习如何通过 <code>&lt;param&gt;</code> 和 <code>&lt;rosparam&gt;</code> 标签在 launch 文件中方便地设置和加载参数。</p>
-`,
+`
+},
 
 "ros-publisher-subscriber": {
 t: "Publisher 与 Subscriber 编程",
@@ -1460,10 +1465,10 @@ ros::Publisher cmd_pub;
 <p>在 <code>CMakeLists.txt</code> 中添加 C++ 可执行文件的编译配置：</p>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="cm"># C++ 可执行文件</span>
 <span class="fn">add_executable</span>(vel_pub_cpp src/velocity_publisher.cpp)
-<span class="fn">target_link_libraries</span>(vel_pub_cpp ${catkin_LIBRARIES})
+<span class="fn">target_link_libraries</span>(vel_pub_cpp ${"$"}{catkin_LIBRARIES})
 
 <span class="fn">add_executable</span>(odom_sub_cpp src/odometry_subscriber.cpp)
-<span class="fn">target_link_libraries</span>(odom_sub_cpp ${catkin_LIBRARIES})</code></pre></div>
+<span class="fn">target_link_libraries</span>(odom_sub_cpp ${"$"}{catkin_LIBRARIES})</code></pre></div>
 
 <p>完整编译和运行流程：</p>
 <div class="code-block"><span class="code-lang">bash</span><pre><code><span class="cm"># 1. 添加可执行权限</span>
@@ -1519,7 +1524,8 @@ rqt_plot /cmd_vel/linear/x /cmd_vel/angular/z
 <li><strong>回调函数中不要做耗时操作</strong>：回调应该快速返回，耗时操作放到独立线程或使用 Action。</li>
 </ul>
 </div>
-`,
+`
+},
 
 "ros-action": {
 t: "Action 长任务通信",
@@ -1916,7 +1922,8 @@ rosrun actionlib axclient.py /fibonacci</code></pre></div>
 <div class="callout tip">
 <p><strong>Action vs Service 选择总结</strong>：执行时间短（毫秒级）、不需要反馈和取消 → 用 Service；执行时间长（秒级以上）、需要进度反馈或中途取消 → 用 Action。ROS 导航栈中的 <code>move_base</code> 是最经典的 Action 使用案例——发送目标点后可以实时看到机器人位置反馈，也可以随时取消导航重新设置目标。</p>
 </div>
-`,
+`
+},
 
 "ros-launch": {
 t: "ROS Launch 文件系统",

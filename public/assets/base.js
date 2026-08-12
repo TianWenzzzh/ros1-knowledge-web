@@ -2,14 +2,64 @@
 (function(){
 'use strict';
 const READ_KEY = 'ros1-read-v2';
+const READ_TIME_KEY = 'ros1-read-time-v1';
 const PROG_KEY = 'ros1-progress-v2';
 const EXP_KEY = 'ros1-experiments';
 
 /* ---------- 工具 ---------- */
+/* 数据迁移：合并旧key和裸ID格式到统一格式 */
+(function migrate(){
+  try{
+    const main = new Set(JSON.parse(localStorage.getItem(READ_KEY)||'[]'));
+    let changed = false;
+    /* 迁移旧的首页key ros1-map-read-v1 */
+    const old1 = localStorage.getItem('ros1-map-read-v1');
+    if(old1){
+      JSON.parse(old1).forEach(x=>{ if(!main.has(x)){ main.add(x); changed=true; } });
+      localStorage.removeItem('ros1-map-read-v1');
+    }
+    /* 迁移裸ID格式（如 'linux-basics' → 'article.html?id=linux-basics'） */
+    const arts = window.__ARTICLES__ || {};
+    const toAdd = [];
+    main.forEach(x=>{
+      if(!x.includes('.html') && !x.includes('?') && arts[x]){
+        toAdd.push('article.html?id='+x);
+        changed = true;
+      }
+    });
+    toAdd.forEach(x=>main.add(x));
+    if(changed) localStorage.setItem(READ_KEY, JSON.stringify([...main]));
+  }catch(e){}
+})();
 function readSet(){ try{ return new Set(JSON.parse(localStorage.getItem(READ_KEY)||'[]')); }catch(e){ return new Set(); } }
 function writeSet(s){ try{ localStorage.setItem(READ_KEY, JSON.stringify([...s])); }catch(e){} }
-function markRead(id){ const s=readSet(); s.add(id); writeSet(s); }
-function isRead(id){ return readSet().has(id); }
+function readTimes(){ try{ return JSON.parse(localStorage.getItem(READ_TIME_KEY)||'{}'); }catch(e){ return {}; } }
+function writeTimes(t){ try{ localStorage.setItem(READ_TIME_KEY, JSON.stringify(t)); }catch(e){} }
+function markRead(id){
+  const s=readSet();
+  if(!s.has(id)){
+    s.add(id); writeSet(s);
+    const t=readTimes(); t[id]=Date.now(); writeTimes(t);
+  }
+}
+/* 兼容检查：支持裸ID('linux-basics')和URL('article.html?id=linux-basics')两种格式 */
+function isRead(id){ const s=readSet(); return s.has(id) || s.has('article.html?id='+id); }
+function getReadTime(id){
+  const t=readTimes();
+  return t[id] || t['article.html?id='+id] || 0;
+}
+/* 获取最近阅读的文章（按时间戳排序） */
+function getRecentArticles(articles, limit){
+  limit = limit || 1;
+  const t=readTimes();
+  const read = articles.filter(a=>isRead(a.id));
+  read.sort((a,b)=>{
+    const ta = t[a.id] || t['article.html?id='+a.id] || 0;
+    const tb = t[b.id] || t['article.html?id='+b.id] || 0;
+    return tb - ta;
+  });
+  return read.slice(0, limit);
+}
 function getExp(){ try{return new Set(JSON.parse(localStorage.getItem(EXP_KEY)||'[]'));}catch(e){return new Set();} }
 function isExpDone(id){ return getExp().has(id); }
 
@@ -30,6 +80,10 @@ function buildSearchIndex(){
     if(a.hidden) return;
     idx.push({t:a.t, u:'article.html?id='+id, p:a.cat||'文章', d:(a.desc||'').slice(0,60)});
   });
+  // 合并子页面预先添加的额外索引条目（命令/实验/排查等），按u去重
+  const existing = window.__SEARCH_INDEX__ || [];
+  const seen = new Set(idx.map(x=>x.u));
+  existing.forEach(x=>{ if(!seen.has(x.u)){ idx.push(x); seen.add(x.u); } });
   window.__SEARCH_INDEX__ = idx;
   return idx;
 }
@@ -64,14 +118,14 @@ function initHamburger(){
   // 检查是否已经有汉堡按钮
   if(document.querySelector('.hamburger')) return;
   const ham = document.createElement('button');
-  ham.className='hamburger'; ham.setAttribute('aria-label','打开菜单');
+  ham.className='hamburger'; ham.setAttribute('aria-label','打开菜单'); ham.setAttribute('aria-expanded','false'); ham.setAttribute('aria-controls','mobile-drawer');
   ham.innerHTML='<span></span><span></span><span></span>';
   // 插入到brand之后
   const brand = topbar.querySelector('.brand');
   if(brand) brand.after(ham);
   // 创建抽屉
   const mask = document.createElement('div'); mask.className='drawer-mask';
-  const drawer = document.createElement('nav'); drawer.className='mobile-drawer';
+  const drawer = document.createElement('nav'); drawer.className='mobile-drawer'; drawer.id='mobile-drawer'; drawer.setAttribute('aria-label','导航菜单');
   const page = location.pathname.split('/').pop() || 'index.html';
   const navItems = [
     {href:'index.html', label:'🏠 首页'},
@@ -85,8 +139,8 @@ function initHamburger(){
   drawer.innerHTML = `<div class="md-brand">🤖 ROS1 知识库</div>` +
     navItems.map(n=>`<a href="${n.href}" class="${page===n.href?'on':''}">${n.label}</a>`).join('');
   document.body.appendChild(mask); document.body.appendChild(drawer);
-  function open(){ ham.classList.add('open'); drawer.classList.add('open'); mask.classList.add('open'); document.body.style.overflow='hidden'; }
-  function close(){ ham.classList.remove('open'); drawer.classList.remove('open'); mask.classList.remove('open'); document.body.style.overflow=''; }
+  function open(){ ham.classList.add('open'); drawer.classList.add('open'); mask.classList.add('open'); document.body.style.overflow='hidden'; ham.setAttribute('aria-expanded','true'); ham.setAttribute('aria-label','关闭菜单'); }
+  function close(){ ham.classList.remove('open'); drawer.classList.remove('open'); mask.classList.remove('open'); document.body.style.overflow=''; ham.setAttribute('aria-expanded','false'); ham.setAttribute('aria-label','打开菜单'); }
   ham.addEventListener('click',()=>{ drawer.classList.contains('open')?close():open(); });
   mask.addEventListener('click',close);
   drawer.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
@@ -102,17 +156,20 @@ function initMobileTOC(){
   document.body.appendChild(fab);
   // 抽屉
   const sheet = document.createElement('div'); sheet.className='toc-mobile';
-  sheet.innerHTML = `<h5>文章目录 <button class="toc-close">✕</button></h5><div class="toc-list"></div>`;
+  sheet.innerHTML = `<h5>文章目录 <button class="toc-close" aria-label="关闭目录">✕</button></h5><div class="toc-list"></div>`;
   const list = sheet.querySelector('.toc-list');
-  list.innerHTML = links.map(a=>{
+  // 使用appendChild直接插入克隆节点，保留事件监听器
+  links.forEach(a=>{
     const clone=a.cloneNode(true);
     clone.addEventListener('click',()=>close());
-    return clone.outerHTML;
-  }).join('');
+    list.appendChild(clone);
+  });
   document.body.appendChild(sheet);
-  function open(){ sheet.classList.add('open'); fab.style.display='none'; }
-  function close(){ sheet.classList.remove('open'); fab.style.display=''; }
+  function open(){ sheet.classList.add('open'); fab.style.display='none'; fab.setAttribute('aria-expanded','true'); }
+  function close(){ sheet.classList.remove('open'); fab.style.display=''; fab.setAttribute('aria-expanded','false'); }
   fab.addEventListener('click',open);
+  fab.setAttribute('aria-expanded','false'); fab.setAttribute('aria-controls','toc-mobile-list');
+  sheet.id='toc-mobile-list';
   sheet.querySelector('.toc-close').addEventListener('click',close);
   // TOC高亮同步
   const ids = links.map(a=>a.getAttribute('href').slice(1));
@@ -129,7 +186,8 @@ function initMobileTOC(){
 function initSearch(){
   const idx = buildSearchIndex();
   const mask = document.createElement('div'); mask.className='search-mask';
-  mask.innerHTML = '<div class="search-box"><input type="text" placeholder="搜索文章、命令、实验… (⌘K)" autocomplete="off"><div class="search-res"></div></div>';
+  mask.setAttribute('role','dialog'); mask.setAttribute('aria-modal','true'); mask.setAttribute('aria-label','全局搜索');
+  mask.innerHTML = '<div class="search-box"><label class="sr-only" for="global-search-input">搜索</label><input id="global-search-input" type="text" placeholder="搜索文章、命令、实验… (⌘K)" autocomplete="off" aria-label="搜索内容"><div class="search-res"></div></div>';
   document.body.appendChild(mask);
   const inp = mask.querySelector('input');
   const res = mask.querySelector('.search-res');
@@ -144,7 +202,7 @@ function initSearch(){
   }
   function open(){ mask.classList.add('show'); inp.value=''; render(''); setTimeout(()=>inp.focus(),50); }
   function close(){ mask.classList.remove('show'); }
-  function go(){ const it=filtered[sel]; if(it){ close(); markRead(it.u); location.href=it.u; } }
+  function go(){ const it=filtered[sel]; if(it){ close(); location.href=it.u; } }
   inp.addEventListener('input', ()=>render(inp.value));
   inp.addEventListener('keydown', e=>{
     if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,filtered.length-1); updateSel(); }
@@ -164,7 +222,7 @@ function initSearch(){
   });
   res.addEventListener('click', e=>{
     const it = e.target.closest('.search-item'); if(!it) return;
-    close(); markRead(it.dataset.u); location.href = it.dataset.u;
+    close(); location.href = it.dataset.u;
   });
   mask.addEventListener('click', e=>{ if(e.target===mask) close(); });
   document.addEventListener('keydown', e=>{
@@ -267,6 +325,7 @@ function initSound(){
     const on=!nodes;
     if(on)start(); else stop();
     btn.setAttribute('aria-pressed',String(on));
+    btn.setAttribute('aria-label', on?'关闭环境音效':'开启环境音效');
     btn.textContent=on?'🔊':'🔇';
     btn.classList.toggle('on',on);
     if(on) trackSound();
@@ -304,45 +363,91 @@ function initTOC(){
 
 /* ---------- 折叠面板（错误排查页） ---------- */
 function initCollapsible(){
-  document.querySelectorAll('.trouble-q').forEach(q=>{
-    q.addEventListener('click',()=>q.parentElement.classList.toggle('open'));
+  document.querySelectorAll('.trouble-q').forEach((q,i)=>{
+    const parent = q.parentElement;
+    const ansId = 'trouble-a-'+i;
+    const ans = parent.querySelector('.trouble-a');
+    if(ans) ans.id = ansId;
     q.setAttribute('tabindex','0'); q.setAttribute('role','button');
-    q.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();q.click();} });
+    q.setAttribute('aria-expanded','false');
+    if(ans) q.setAttribute('aria-controls',ansId);
+    function toggle(){
+      const isOpen = parent.classList.toggle('open');
+      q.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+    q.addEventListener('click',toggle);
+    q.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();} });
   });
 }
 
-/* ---------- 命令点击复制（含终端过滤） ---------- */
+/* ---------- 命令点击复制（事件委托，兼容动态DOM） ---------- */
 function initCmdCopy(){
-  // 命令表格
-  document.querySelectorAll('.cmd-table .cmd').forEach(c=>{
+  // 命令表格：事件委托，搜索过滤重绘DOM后仍有效
+  document.addEventListener('click', e=>{
+    const c = e.target.closest('.cmd-table .cmd');
+    if(!c) return;
     c.style.cursor='pointer'; c.title='点击复制';
-    c.addEventListener('click',()=>{
-      let text=c.textContent.trim().replace(/^(\$ |# )/,'');
-      navigator.clipboard.writeText(text).then(()=>{
-        const orig=c.textContent; c.textContent='✓ 已复制'; c.style.color='var(--green)';
-        setTimeout(()=>{c.textContent=orig;c.style.color='';},1200);
+    let text=c.textContent.trim().replace(/^(\$ |# )/,'');
+    navigator.clipboard.writeText(text).then(()=>{
+      const orig=c.textContent; c.textContent='✓ 已复制'; c.style.color='var(--green)';
+      setTimeout(()=>{c.textContent=orig;c.style.color='';},1200);
+    }).catch(()=>{
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+      const orig=c.textContent; c.textContent='✓ 已复制'; c.style.color='var(--green)';
+      setTimeout(()=>{c.textContent=orig;c.style.color='';},1200);
+    });
+  });
+  // 终端命令行：初始化时标记可点击命令行（使用DOM遍历，避免正则解析HTML）
+  function processTerminal(term){
+    if(term.dataset.cmdInit) return;
+    term.dataset.cmdInit='1';
+    // 使用TreeWalker遍历所有文本节点，将$开头的命令行包裹为span.cmd-line
+    const walker = document.createTreeWalker(term, NodeFilter.SHOW_TEXT, null);
+    const nodesToWrap = [];
+    let node;
+    while(node = walker.nextNode()){
+      const text = node.textContent;
+      // 匹配行首的$命令（考虑前面可能有空白或prompt元素）
+      if(/^\$\s/.test(text) && !node.parentElement.classList.contains('cmd-line')){
+        nodesToWrap.push(node);
+      }
+    }
+    nodesToWrap.forEach(textNode=>{
+      const span = document.createElement('span');
+      span.className = 'cmd-line';
+      span.setAttribute('data-cmd', textNode.textContent.trim());
+      textNode.parentNode.insertBefore(span, textNode);
+      span.appendChild(textNode);
+    });
+  }
+  document.querySelectorAll('.terminal-body').forEach(processTerminal);
+  // 监听动态添加的终端（如article.html动态渲染后）
+  const mo = new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes.forEach(n=>{
+        if(n.nodeType===1){
+          if(n.classList && n.classList.contains('terminal-body')) processTerminal(n);
+          n.querySelectorAll && n.querySelectorAll('.terminal-body').forEach(processTerminal);
+        }
       });
     });
   });
-  // 终端命令行
-  document.querySelectorAll('.terminal-body').forEach(term=>{
-    const lines=term.innerHTML.split(/<br>/);
-    const processed=lines.map(line=>{
-      if(/class="prompt"/.test(line) || /^\s*\$/.test(line)){
-        return line.replace(/(\$[^<]*)/g,'<span class="cmd-line" data-cmd="$1">$1</span>');
-      }
-      return line;
-    }).join('<br>');
-    term.innerHTML=processed;
-    term.querySelectorAll('.cmd-line').forEach(l=>{
-      l.style.cursor='pointer'; l.title='点击复制命令';
-      l.addEventListener('click',()=>{
-        let text=l.textContent.trim().replace(/^\$\s*/,'');
-        navigator.clipboard.writeText(text).then(()=>{
-          l.classList.add('copied');
-          setTimeout(()=>l.classList.remove('copied'),1200);
-        });
-      });
+  mo.observe(document.body, {childList:true, subtree:true});
+  // 终端命令行点击复制：事件委托
+  document.addEventListener('click', e=>{
+    const l = e.target.closest('.terminal-body .cmd-line');
+    if(!l) return;
+    l.style.cursor='pointer'; l.title='点击复制命令';
+    let text=l.textContent.trim().replace(/^\$\s*/,'');
+    navigator.clipboard.writeText(text).then(()=>{
+      l.classList.add('copied');
+      setTimeout(()=>l.classList.remove('copied'),1200);
+    }).catch(()=>{
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+      l.classList.add('copied');
+      setTimeout(()=>l.classList.remove('copied'),1200);
     });
   });
 }
@@ -360,8 +465,8 @@ function initCardGlow(){
 
 /* ---------- 实验完成状态 ---------- */
 function initExperiments(){
-  document.querySelectorAll('.exp-card[data-exp]').forEach(card=>{
-    if(isExpDone(card.dataset.exp)) card.classList.add('done');
+  document.querySelectorAll('.exp-card[data-id]').forEach(card=>{
+    if(isExpDone(card.dataset.id)) card.classList.add('done');
   });
 }
 
@@ -430,9 +535,9 @@ function checkAchievements(){
 
 /* ---------- Konami Code 彩蛋（↑↑↓↓←→←→BA） ---------- */
 function initKonami(){
-  const seq=[38,38,40,40,37,39,37,39,66,65]; let pos=0;
+  const seq=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']; let pos=0;
   document.addEventListener('keydown',e=>{
-    if(e.keyCode===seq[pos] || e.key===seq[pos]){
+    if(e.key===seq[pos] || e.key===seq[pos].toUpperCase()){
       pos++;
       if(pos===seq.length){
         pos=0;
@@ -497,7 +602,6 @@ function initRandomExplore(){
       const unread=ids.filter(k=>!isRead('article.html?id='+k));
       const pool=unread.length>0?unread:ids;
       const pick=pool[Math.floor(Math.random()*pool.length)];
-      markRead('article.html?id='+pick);
       location.href='article.html?id='+pick;
     });
   });
@@ -622,5 +726,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 /* 暴露给子页面 */
-window.__KB__ = { markRead, isRead, readSet, writeSet, initToast, checkAchievements, unlockAchievement, getAch, ACHIEVEMENTS, buildSearchIndex, isExpDone, getExp };
+window.__KB__ = { markRead, isRead, readSet, writeSet, readTimes, getReadTime, getRecentArticles, initToast, checkAchievements, unlockAchievement, getAch, ACHIEVEMENTS, buildSearchIndex, isExpDone, getExp };
 })();

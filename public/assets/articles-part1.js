@@ -1180,7 +1180,7 @@ catkin_create_pkg my_python_pkg rospy std_msgs geometry_msgs
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="fn">catkin_install_python</span>(PROGRAMS
   scripts/circle_driver.py
   scripts/pose_listener.py
-  DESTINATION ${<span class="var">CATKIN_PACKAGE_BIN_DESTINATION</span>}
+  DESTINATION ${"$"}{<span class="var">CATKIN_PACKAGE_BIN_DESTINATION</span>}
 )</code></pre></div>
 
 <h3>方式二：使用 setup.py</h3>
@@ -1484,9 +1484,9 @@ rospack find my_first_pkg
 <h3>4. 包含目录</h3>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="fn">include_directories</span>(
   <span class="com"># include  # 如果有自定义头文件，取消注释</span>
-  ${<span class="var">catkin_INCLUDE_DIRS</span>}
+  ${"$"}{<span class="var">catkin_INCLUDE_DIRS</span>}
 )</code></pre></div>
-<p><code>${catkin_INCLUDE_DIRS}</code> 包含了所有依赖包的头文件路径。</p>
+<p><code>${"$"}{catkin_INCLUDE_DIRS}</code> 包含了所有依赖包的头文件路径。</p>
 
 <h3>5. 声明可执行文件（C++节点）</h3>
 <p>如果你有 C++ 节点，需要声明如何编译：</p>
@@ -1495,14 +1495,14 @@ rospack find my_first_pkg
 
 <span class="cm"># 链接依赖库</span>
 <span class="fn">target_link_libraries</span>(my_node
-  ${<span class="var">catkin_LIBRARIES</span>}
+  ${"$"}{<span class="var">catkin_LIBRARIES</span>}
 )</code></pre></div>
 
 <h3>6. Python 脚本安装</h3>
 <p>Python 脚本不需要编译，但需要告诉 catkin 安装它们：</p>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="fn">catkin_install_python</span>(PROGRAMS
   scripts/my_python_node.py
-  DESTINATION ${<span class="var">CATKIN_PACKAGE_BIN_DESTINATION</span>}
+  DESTINATION ${"$"}{<span class="var">CATKIN_PACKAGE_BIN_DESTINATION</span>}
 )</code></pre></div>
 
 <h2>查找和安装依赖</h2>
