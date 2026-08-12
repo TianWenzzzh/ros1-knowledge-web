@@ -244,8 +244,21 @@ if(hs.length>0){
   setTimeout(()=>window.__KB__ && window.dispatchEvent(new Event('scroll')), 100);
 }
 
-/* 上下篇 */
-const order = Object.keys(window.__ARTICLES__).filter(k=>!window.__ARTICLES__[k].hidden);
+/* 上下篇 - 按推荐学习顺序排列 */
+const LEARNING_ORDER = [
+  // 阶段一：环境搭建与基础认知
+  'linux-basics','git-basics','ubuntu-setup','ros-architecture',
+  // 阶段二：通信机制与编程入门
+  'catkin-workspace','c-basics-intro','ros-node','ros-topic','ros-service',
+  'ros-parameter','ros-message','python-for-ros-intro','ros-publisher-subscriber',
+  // 阶段三：工具链与机器人建模
+  'ros-launch','rosbag','ros-debugging','tf-transform','urdf-xacro','ros-action',
+  // 阶段四：SLAM导航与综合应用
+  'slam-navigation','cpp-for-ros-intro','cpp-python-comparison','ros1-to-ros2'
+];
+const allArticleKeys = Object.keys(window.__ARTICLES__).filter(k=>!window.__ARTICLES__[k].hidden);
+// 用LEARNING_ORDER作为主顺序，任何不在列表中的文章追加到末尾
+const order = [...LEARNING_ORDER.filter(k=>allArticleKeys.includes(k)), ...allArticleKeys.filter(k=>!LEARNING_ORDER.includes(k))];
 const idx = order.indexOf(id);
 const nav = document.getElementById('art-nav');
 let navHtml = '';

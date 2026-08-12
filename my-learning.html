@@ -228,13 +228,19 @@ function getSuggestion(pct, readSet, articles){
   return '马上就要完成全部学习了，加油！';
 }
 
-function getRecent(readSet, articles){
-  // 收集所有已读的文章ID（兼容裸ID和URL格式）
-  const readIds = articles.filter(a=>isRead(readSet,a.id)).map(a=>a.id);
-  if(readIds.length===0) return null;
-  // 返回最后一个
-  const lastId = readIds[readIds.length-1];
-  return articles.find(a=>a.id===lastId);
+function formatTimeAgo(ts){
+  if(!ts) return '';
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if(m<1) return '刚刚';
+  if(m<60) return m+'分钟前';
+  const h = Math.floor(m/60);
+  if(h<24) return h+'小时前';
+  const d = Math.floor(h/24);
+  if(d<30) return d+'天前';
+  const mo = Math.floor(d/30);
+  if(mo<12) return mo+'个月前';
+  return Math.floor(mo/12)+'年前';
 }
 
 /* 渲染统计卡片 */
@@ -243,11 +249,13 @@ function renderStats(articles, readSet, expSet){
   const total = articles.length;
   const pct = total>0 ? Math.round(readCount/total*100) : 0;
   const stage = getStage(readCount);
-  const recent = getRecent(readSet, articles);
+  const KB = window.__KB__ || {};
+  const recent = KB.getRecentArticles ? KB.getRecentArticles(articles, 1)[0] : null;
+  const recentTime = (recent && KB.getReadTime) ? KB.getReadTime(recent.id) : 0;
   const expDone = expSet.size;
 
   const recentHtml = recent
-    ? `<a class="recent-link" href="article.html?id=${recent.id}" title="${recent.t}">${recent.t}</a>`
+    ? `<a class="recent-link" href="article.html?id=${recent.id}" title="${recent.t}${recentTime?' · '+formatTimeAgo(recentTime):''}">${recent.t}</a>${recentTime?`<div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${formatTimeAgo(recentTime)}</div>`:''}`
     : `<div class="recent-none">暂无记录</div>`;
 
   document.getElementById('statRow').innerHTML = `
