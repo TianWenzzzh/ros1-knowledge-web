@@ -683,33 +683,33 @@ rosrun rviz rviz -d <span class="str">$(rospack find urdf_tutorial)</span>/rviz/
 <span class="kw">&lt;xacro:property</span> <span class="var">name</span>=<span class="str">"wheel_radius"</span> <span class="var">value</span>=<span class="str">"0.05"</span><span class="kw">/&gt;</span>
 <span class="kw">&lt;xacro:property</span> <span class="var">name</span>=<span class="str">"pi"</span> <span class="var">value</span>=<span class="str">"3.14159265"</span><span class="kw">/&gt;</span>
 
-<span class="cm">&lt;!-- 使用属性: ${$}{属性名} --&gt;</span>
-<span class="kw">&lt;box</span> <span class="var">size</span>=<span class="str">"${$}{base_length} ${$}{base_width} 0.1"</span><span class="kw">/&gt;</span></code></pre></div>
+<span class="cm">&lt;!-- 使用属性: ${"$"}{属性名} --&gt;</span>
+<span class="kw">&lt;box</span> <span class="var">size</span>=<span class="str">"${"$"}{base_length} ${"$"}{base_width} 0.1"</span><span class="kw">/&gt;</span></code></pre></div>
 
 <h3>宏定义：xacro:macro</h3>
 <p>宏用来定义可复用的代码块(类似函数)，可以传参数：</p>
 <div class="code-block"><div class="code-lang">xml</div><pre><code><span class="cm">&lt;!-- 定义轮子宏 --&gt;</span>
 <span class="kw">&lt;xacro:macro</span> <span class="var">name</span>=<span class="str">"wheel"</span> <span class="var">params</span>=<span class="str">"prefix x_pos y_pos"</span><span class="kw">&gt;</span>
-  <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"${$}{prefix}_wheel"</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"${"$"}{prefix}_wheel"</span><span class="kw">&gt;</span>
     <span class="kw">&lt;visual&gt;</span>
       <span class="kw">&lt;geometry&gt;</span>
-        <span class="kw">&lt;cylinder</span> <span class="var">radius</span>=<span class="str">"${$}{wheel_radius}"</span> <span class="var">length</span>=<span class="str">"0.03"</span><span class="kw">/&gt;</span>
+        <span class="kw">&lt;cylinder</span> <span class="var">radius</span>=<span class="str">"${"$"}{wheel_radius}"</span> <span class="var">length</span>=<span class="str">"0.03"</span><span class="kw">/&gt;</span>
       <span class="kw">&lt;/geometry&gt;</span>
     <span class="kw">&lt;/visual&gt;</span>
   <span class="kw">&lt;/link&gt;</span>
-  <span class="kw">&lt;joint</span> <span class="var">name</span>=<span class="str">"${$}{prefix}_wheel_joint"</span> <span class="var">type</span>=<span class="str">"continuous"</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;joint</span> <span class="var">name</span>=<span class="str">"${"$"}{prefix}_wheel_joint"</span> <span class="var">type</span>=<span class="str">"continuous"</span><span class="kw">&gt;</span>
     <span class="kw">&lt;parent</span> <span class="var">link</span>=<span class="str">"base_link"</span><span class="kw">/&gt;</span>
-    <span class="kw">&lt;child</span> <span class="var">link</span>=<span class="str">"${$}{prefix}_wheel"</span><span class="kw">/&gt;</span>
-    <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${$}{x_pos} ${$}{y_pos} 0"</span> <span class="var">rpy</span>=<span class="str">"0 ${$}{pi/2} 0"</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;child</span> <span class="var">link</span>=<span class="str">"${"$"}{prefix}_wheel"</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${"$"}{x_pos} ${"$"}{y_pos} 0"</span> <span class="var">rpy</span>=<span class="str">"0 ${"$"}{pi/2} 0"</span><span class="kw">/&gt;</span>
     <span class="kw">&lt;axis</span> <span class="var">xyz</span>=<span class="str">"0 1 0"</span><span class="kw">/&gt;</span>
   <span class="kw">&lt;/joint&gt;</span>
 <span class="kw">&lt;/xacro:macro&gt;</span>
 
 <span class="cm">&lt;!-- 调用宏: 四个轮子一行搞定 --&gt;</span>
-<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"front_left"</span>  <span class="var">x_pos</span>=<span class="str">"${$}{base_length/2}"</span>  <span class="var">y_pos</span>=<span class="str">"${$}{base_width/2}"</span><span class="kw">/&gt;</span>
-<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"front_right"</span> <span class="var">x_pos</span>=<span class="str">"${$}{base_length/2}"</span>  <span class="var">y_pos</span>=<span class="str">"-${$}{base_width/2}"</span><span class="kw">/&gt;</span>
-<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rear_left"</span>   <span class="var">x_pos</span>=<span class="str">"-${$}{base_length/2}"</span> <span class="var">y_pos</span>=<span class="str">"${$}{base_width/2}"</span><span class="kw">/&gt;</span>
-<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rear_right"</span>  <span class="var">x_pos</span>=<span class="str">"-${$}{base_length/2}"</span> <span class="var">y_pos</span>=<span class="str">"-${$}{base_width/2}"</span><span class="kw">/&gt;</span></code></pre></div>
+<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"front_left"</span>  <span class="var">x_pos</span>=<span class="str">"${"$"}{base_length/2}"</span>  <span class="var">y_pos</span>=<span class="str">"${"$"}{base_width/2}"</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"front_right"</span> <span class="var">x_pos</span>=<span class="str">"${"$"}{base_length/2}"</span>  <span class="var">y_pos</span>=<span class="str">"-${"$"}{base_width/2}"</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rear_left"</span>   <span class="var">x_pos</span>=<span class="str">"-${"$"}{base_length/2}"</span> <span class="var">y_pos</span>=<span class="str">"${"$"}{base_width/2}"</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rear_right"</span>  <span class="var">x_pos</span>=<span class="str">"-${"$"}{base_length/2}"</span> <span class="var">y_pos</span>=<span class="str">"-${"$"}{base_width/2}"</span><span class="kw">/&gt;</span></code></pre></div>
 
 <h3>文件包含：xacro:include</h3>
 <p>大型机器人模型可以拆分成多个文件，用 include 组合：</p>
@@ -721,15 +721,15 @@ rosrun rviz rviz -d <span class="str">$(rospack find urdf_tutorial)</span>/rviz/
 <h3>条件和数学运算</h3>
 <div class="code-block"><div class="code-lang">xml</div><pre><code><span class="cm">&lt;!-- 条件判断 --&gt;</span>
 <span class="kw">&lt;xacro:property</span> <span class="var">name</span>=<span class="str">"use_lidar"</span> <span class="var">value</span>=<span class="str">"true"</span><span class="kw">/&gt;</span>
-<span class="kw">&lt;xacro:if</span> <span class="var">value</span>=<span class="str">"${$}{use_lidar}"</span><span class="kw">&gt;</span>
+<span class="kw">&lt;xacro:if</span> <span class="var">value</span>=<span class="str">"${"$"}{use_lidar}"</span><span class="kw">&gt;</span>
   <span class="kw">&lt;xacro:lidar_mount/&gt;</span>
 <span class="kw">&lt;/xacro:if&gt;</span>
 
 <span class="cm">&lt;!-- 数学运算 --&gt;</span>
-<span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${$}{base_length/2 + wheel_radius} 0 ${$}{wheel_radius}"</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${"$"}{base_length/2 + wheel_radius} 0 ${"$"}{wheel_radius}"</span><span class="kw">/&gt;</span>
 
 <span class="cm">&lt;!-- Python表达式(更复杂的计算) --&gt;</span>
-<span class="kw">&lt;xacro:property</span> <span class="var">name</span>=<span class="str">... </span><span class="var">value</span>=<span class="str">"${$}{radians(30)}"</span><span class="kw">/&gt;</span>  <span class="cm">&lt;!-- 角度转弧度 --&gt;</span></code></pre></div>
+<span class="kw">&lt;xacro:property</span> <span class="var">name</span>=<span class="str">... </span><span class="var">value</span>=<span class="str">"${"$"}{radians(30)}"</span><span class="kw">/&gt;</span>  <span class="cm">&lt;!-- 角度转弧度 --&gt;</span></code></pre></div>
 
 <h2>使用 xacro 生成 URDF</h2>
 <div class="code-block"><div class="code-lang">bash</div><pre><code><span class="cm"># 命令行: xacro文件 -> URDF文件</span>
@@ -767,41 +767,41 @@ xdg-open my_robot.pdf  <span class="cm"># 查看link-joint结构图</span></code
   <span class="cm">&lt;!-- 底盘 --&gt;</span>
   <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"base_link"</span><span class="kw">&gt;</span>
     <span class="kw">&lt;visual&gt;</span>
-      <span class="kw">&lt;geometry&gt;&lt;box</span> <span class="var">size</span>=<span class="str">"${$}{base_l} ${$}{base_w} ${$}{base_h}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
-      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${$}{base_h/2}"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;geometry&gt;&lt;box</span> <span class="var">size</span>=<span class="str">"${"$"}{base_l} ${"$"}{base_w} ${"$"}{base_h}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
+      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${"$"}{base_h/2}"</span><span class="kw">/&gt;</span>
       <span class="kw">&lt;material</span> <span class="var">name</span>=<span class="str">"blue"</span><span class="kw">&gt;&lt;color</span> <span class="var">rgba</span>=<span class="str">"0.2 0.4 0.8 1"</span><span class="kw">/&gt;&lt;/material&gt;</span>
     <span class="kw">&lt;/visual&gt;</span>
     <span class="kw">&lt;collision&gt;</span>
-      <span class="kw">&lt;geometry&gt;&lt;box</span> <span class="var">size</span>=<span class="str">"${$}{base_l} ${$}{base_w} ${$}{base_h}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
-      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${$}{base_h/2}"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;geometry&gt;&lt;box</span> <span class="var">size</span>=<span class="str">"${"$"}{base_l} ${"$"}{base_w} ${"$"}{base_h}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
+      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${"$"}{base_h/2}"</span><span class="kw">/&gt;</span>
     <span class="kw">&lt;/collision&gt;</span>
     <span class="kw">&lt;inertial&gt;</span>
       <span class="kw">&lt;mass</span> <span class="var">value</span>=<span class="str">"5"</span><span class="kw">/&gt;</span>
-      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${$}{base_h/2}"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0 0 ${"$"}{base_h/2}"</span><span class="kw">/&gt;</span>
       <span class="kw">&lt;inertia</span> <span class="var">ixx</span>=<span class="str">"0.04"</span> <span class="var">iyy</span>=<span class="str">"0.08"</span> <span class="var">izz</span>=<span class="str">"0.1"</span> <span class="var">ixy</span>=<span class="str">"0"</span> <span class="var">ixz</span>=<span class="str">"0"</span> <span class="var">iyz</span>=<span class="str">"0"</span><span class="kw">/&gt;</span>
     <span class="kw">&lt;/inertial&gt;</span>
   <span class="kw">&lt;/link&gt;</span>
 
   <span class="cm">&lt;!-- 轮子宏 --&gt;</span>
   <span class="kw">&lt;xacro:macro</span> <span class="var">name</span>=<span class="str">"wheel"</span> <span class="var">params</span>=<span class="str">"prefix x y"</span><span class="kw">&gt;</span>
-    <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"${$}{prefix}_wheel"</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"${"$"}{prefix}_wheel"</span><span class="kw">&gt;</span>
       <span class="kw">&lt;visual&gt;</span>
-        <span class="kw">&lt;geometry&gt;&lt;cylinder</span> <span class="var">radius</span>=<span class="str">"${$}{wheel_r}"</span> <span class="var">length</span>=<span class="str">"${$}{wheel_w}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
+        <span class="kw">&lt;geometry&gt;&lt;cylinder</span> <span class="var">radius</span>=<span class="str">"${"$"}{wheel_r}"</span> <span class="var">length</span>=<span class="str">"${"$"}{wheel_w}"</span><span class="kw">/&gt;&lt;/geometry&gt;</span>
         <span class="kw">&lt;material</span> <span class="var">name</span>=<span class="str">"black"</span><span class="kw">&gt;&lt;color</span> <span class="var">rgba</span>=<span class="str">"0.1 0.1 0.1 1"</span><span class="kw">/&gt;&lt;/material&gt;</span>
       <span class="kw">&lt;/visual&gt;</span>
     <span class="kw">&lt;/link&gt;</span>
-    <span class="kw">&lt;joint</span> <span class="var">name</span>=<span class="str">"${$}{prefix}_wheel_joint"</span> <span class="var">type</span>=<span class="str">"continuous"</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;joint</span> <span class="var">name</span>=<span class="str">"${"$"}{prefix}_wheel_joint"</span> <span class="var">type</span>=<span class="str">"continuous"</span><span class="kw">&gt;</span>
       <span class="kw">&lt;parent</span> <span class="var">link</span>=<span class="str">"base_link"</span><span class="kw">/&gt;</span>
-      <span class="kw">&lt;child</span> <span class="var">link</span>=<span class="str">"${$}{prefix}_wheel"</span><span class="kw">/&gt;</span>
-      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${$}{x} ${$}{y} ${$}{wheel_r}"</span> <span class="var">rpy</span>=<span class="str">"0 1.5708 0"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;child</span> <span class="var">link</span>=<span class="str">"${"$"}{prefix}_wheel"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"${"$"}{x} ${"$"}{y} ${"$"}{wheel_r}"</span> <span class="var">rpy</span>=<span class="str">"0 1.5708 0"</span><span class="kw">/&gt;</span>
       <span class="kw">&lt;axis</span> <span class="var">xyz</span>=<span class="str">"0 1 0"</span><span class="kw">/&gt;</span>
     <span class="kw">&lt;/joint&gt;</span>
   <span class="kw">&lt;/xacro:macro&gt;</span>
 
-  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"fl"</span> <span class="var">x</span>=<span class="str">"${$}{base_l/2}"</span>  <span class="var">y</span>=<span class="str">"${$}{base_w/2}"</span><span class="kw">/&gt;</span>
-  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"fr"</span> <span class="var">x</span>=<span class="str">"${$}{base_l/2}"</span>  <span class="var">y</span>=<span class="str">"-${$}{base_w/2}"</span><span class="kw">/&gt;</span>
-  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rl"</span> <span class="var">x</span>=<span class="str">"-${$}{base_l/2}"</span> <span class="var">y</span>=<span class="str">"${$}{base_w/2}"</span><span class="kw">/&gt;</span>
-  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rr"</span> <span class="var">x</span>=<span class="str">"-${$}{base_l/2}"</span> <span class="var">y</span>=<span class="str">"-${$}{base_w/2}"</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"fl"</span> <span class="var">x</span>=<span class="str">"${"$"}{base_l/2}"</span>  <span class="var">y</span>=<span class="str">"${"$"}{base_w/2}"</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"fr"</span> <span class="var">x</span>=<span class="str">"${"$"}{base_l/2}"</span>  <span class="var">y</span>=<span class="str">"-${"$"}{base_w/2}"</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rl"</span> <span class="var">x</span>=<span class="str">"-${"$"}{base_l/2}"</span> <span class="var">y</span>=<span class="str">"${"$"}{base_w/2}"</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;xacro:wheel</span> <span class="var">prefix</span>=<span class="str">"rr"</span> <span class="var">x</span>=<span class="str">"-${"$"}{base_l/2}"</span> <span class="var">y</span>=<span class="str">"-${"$"}{base_w/2}"</span><span class="kw">/&gt;</span>
 
   <span class="cm">&lt;!-- 激光雷达(圆柱简化表示) --&gt;</span>
   <span class="kw">&lt;link</span> <span class="var">name</span>=<span class="str">"laser_link"</span><span class="kw">&gt;</span>
@@ -813,7 +813,7 @@ xdg-open my_robot.pdf  <span class="cm"># 查看link-joint结构图</span></code
   <span class="kw">&lt;joint</span> <span class="var">name</span>=<span class="str">"laser_joint"</span> <span class="var">type</span>=<span class="str">"fixed"</span><span class="kw">&gt;</span>
     <span class="kw">&lt;parent</span> <span class="var">link</span>=<span class="str">"base_link"</span><span class="kw">/&gt;</span>
     <span class="kw">&lt;child</span> <span class="var">link</span>=<span class="str">"laser_link"</span><span class="kw">/&gt;</span>
-    <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0.1 0 ${$}{lidar_z}"</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;origin</span> <span class="var">xyz</span>=<span class="str">"0.1 0 ${"$"}{lidar_z}"</span><span class="kw">/&gt;</span>
   <span class="kw">&lt;/joint&gt;</span>
 
   <span class="cm">&lt;!-- Gazebo需要一个虚拟base_footprint --&gt;</span>
@@ -1128,15 +1128,15 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package()
 
 <span class="cm"># 包含头文件目录</span>
-include_directories(${$}{catkin_INCLUDE_DIRS})
+include_directories(${"$"}{catkin_INCLUDE_DIRS})
 
 <span class="cm"># 声明可执行文件: 节点名 + 源文件</span>
 add_executable(talker_node src/talker.cpp)
 add_executable(listener_node src/listener.cpp)
 
 <span class="cm"># 链接ROS库</span>
-target_link_libraries(talker_node ${$}{catkin_LIBRARIES})
-target_link_libraries(listener_node ${$}{catkin_LIBRARIES})</code></pre></div>
+target_link_libraries(talker_node ${"$"}{catkin_LIBRARIES})
+target_link_libraries(listener_node ${"$"}{catkin_LIBRARIES})</code></pre></div>
 <p>同时在 <code>package.xml</code> 中声明依赖：</p>
 <div class="code-block"><div class="code-lang">xml</div><pre><code><span class="kw">&lt;build_depend&gt;</span>roscpp<span class="kw">&lt;/build_depend&gt;</span>
 <span class="kw">&lt;build_export_depend&gt;</span>roscpp<span class="kw">&lt;/build_export_depend&gt;</span>
@@ -1513,10 +1513,10 @@ rosrun my_pkg temp_node.py</code></pre></div>
 <div class="code-block"><div class="code-lang">cmake</div><pre><code>find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 
 add_executable(temp_publisher src/temp_publisher.cpp)
-target_link_libraries(temp_publisher ${$}{catkin_LIBRARIES})
+target_link_libraries(temp_publisher ${"$"}{catkin_LIBRARIES})
 
 add_executable(temp_monitor src/temp_monitor.cpp)
-target_link_libraries(temp_monitor ${$}{catkin_LIBRARIES})</code></pre></div>
+target_link_libraries(temp_monitor ${"$"}{catkin_LIBRARIES})</code></pre></div>
 
 <h2>代码对比</h2>
 <table>
@@ -1721,7 +1721,7 @@ add_executable(my_node src/my_node.cpp)
 ament_target_dependencies(my_node rclcpp std_msgs)
 
 install(TARGETS my_node
-  DESTINATION lib/${$}{PROJECT_NAME})
+  DESTINATION lib/${"$"}{PROJECT_NAME})
 
 ament_package()</code></pre></div>
 <p>package.xml 格式也有变化，使用 format 3：</p>
