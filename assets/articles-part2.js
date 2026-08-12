@@ -936,12 +936,12 @@ source devel/setup.bash</code></pre></div>
 
 <h3>步骤 9：在 CMakeLists.txt 中添加可执行文件</h3>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="fn">add_executable</span>(add_server src/add_two_ints_server.cpp)
-<span class="fn">target_link_libraries</span>(add_server \${catkin_LIBRARIES})
-<span class="fn">add_dependencies</span>(add_server \${\${PROJECT_NAME}_EXPORTED_TARGETS} \${catkin_EXPORTED_TARGETS})
+<span class="fn">target_link_libraries</span>(add_server ${$}{catkin_LIBRARIES})
+<span class="fn">add_dependencies</span>(add_server ${$}{${$}{PROJECT_NAME}_EXPORTED_TARGETS} ${$}{catkin_EXPORTED_TARGETS})
 
 <span class="fn">add_executable</span>(add_client src/add_two_ints_client.cpp)
-<span class="fn">target_link_libraries</span>(add_client \${catkin_LIBRARIES})
-<span class="fn">add_dependencies</span>(add_client \${\${PROJECT_NAME}_EXPORTED_TARGETS} \${catkin_EXPORTED_TARGETS})</code></pre></div>
+<span class="fn">target_link_libraries</span>(add_client ${$}{catkin_LIBRARIES})
+<span class="fn">add_dependencies</span>(add_client ${$}{${$}{PROJECT_NAME}_EXPORTED_TARGETS} ${$}{catkin_EXPORTED_TARGETS})</code></pre></div>
 
 <h3>步骤 10：运行测试</h3>
 <div class="code-block"><span class="code-lang">bash</span><pre><code><span class="cm"># 给 Python 脚本加执行权限</span>
@@ -1465,10 +1465,10 @@ ros::Publisher cmd_pub;
 <p>在 <code>CMakeLists.txt</code> 中添加 C++ 可执行文件的编译配置：</p>
 <div class="code-block"><span class="code-lang">cmake</span><pre><code><span class="cm"># C++ 可执行文件</span>
 <span class="fn">add_executable</span>(vel_pub_cpp src/velocity_publisher.cpp)
-<span class="fn">target_link_libraries</span>(vel_pub_cpp \${catkin_LIBRARIES})
+<span class="fn">target_link_libraries</span>(vel_pub_cpp ${$}{catkin_LIBRARIES})
 
 <span class="fn">add_executable</span>(odom_sub_cpp src/odometry_subscriber.cpp)
-<span class="fn">target_link_libraries</span>(odom_sub_cpp \${catkin_LIBRARIES})</code></pre></div>
+<span class="fn">target_link_libraries</span>(odom_sub_cpp ${$}{catkin_LIBRARIES})</code></pre></div>
 
 <p>完整编译和运行流程：</p>
 <div class="code-block"><span class="code-lang">bash</span><pre><code><span class="cm"># 1. 添加可执行权限</span>
