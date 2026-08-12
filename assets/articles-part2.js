@@ -242,7 +242,8 @@ rosnode list
 <li>善用 <code>rosnode</code> 工具进行调试和状态检查。</li>
 <li>一个节点应该只负责一项功能，保持单一职责原则。</li>
 </ul>
-`,
+`
+},
 
 "ros-topic": {
 t: "ROS 话题 (Topic) 与消息通信",
@@ -444,7 +445,8 @@ rostopic type /robot_status  <span class="cm"># std_msgs/String</span></code></p
 </ul>
 
 <p>在后续的 Publisher/Subscriber 编程章节中，我们将深入学习如何用 Python 和 C++ 编写自定义的话题发布和订阅节点，实现更复杂的数据交换逻辑。</p>
-`,
+`
+},
 
 "ros-message": {
 t: "ROS 消息 (Message) 定义与使用",
@@ -727,7 +729,8 @@ rosmsg info robot_demo/RobotStatus</code></pre></div>
 <tr><td><code>visualization_msgs</code></td><td>可视化标记</td><td>Marker, MarkerArray, InteractiveMarker</td></tr>
 </tbody>
 </table>
-`,
+`
+},
 
 "ros-service": {
 t: "ROS 服务 (Service) 与请求响应",
@@ -980,7 +983,8 @@ rosrun add_two_ints add_two_ints_client.py 10 20
 <tr><td><code>/tf2_frames</code></td><td>tf2_msgs/FrameGraph</td><td>获取TF坐标变换树</td></tr>
 </tbody>
 </table>
-`,
+`
+},
 
 "ros-parameter": {
 t: "ROS 参数服务器",
@@ -1194,7 +1198,8 @@ rosparam get /robot2/max_speed  <span class="cm"># 1.5</span></code></pre></div>
 </div>
 
 <p>在后续的 launch 文件章节中，我们将学习如何通过 <code>&lt;param&gt;</code> 和 <code>&lt;rosparam&gt;</code> 标签在 launch 文件中方便地设置和加载参数。</p>
-`,
+`
+},
 
 "ros-publisher-subscriber": {
 t: "Publisher 与 Subscriber 编程",
@@ -1519,7 +1524,8 @@ rqt_plot /cmd_vel/linear/x /cmd_vel/angular/z
 <li><strong>回调函数中不要做耗时操作</strong>：回调应该快速返回，耗时操作放到独立线程或使用 Action。</li>
 </ul>
 </div>
-`,
+`
+},
 
 "ros-action": {
 t: "Action 长任务通信",
@@ -1916,7 +1922,8 @@ rosrun actionlib axclient.py /fibonacci</code></pre></div>
 <div class="callout tip">
 <p><strong>Action vs Service 选择总结</strong>：执行时间短（毫秒级）、不需要反馈和取消 → 用 Service；执行时间长（秒级以上）、需要进度反馈或中途取消 → 用 Action。ROS 导航栈中的 <code>move_base</code> 是最经典的 Action 使用案例——发送目标点后可以实时看到机器人位置反馈，也可以随时取消导航重新设置目标。</p>
 </div>
-`,
+`
+},
 
 "ros-launch": {
 t: "ROS Launch 文件系统",

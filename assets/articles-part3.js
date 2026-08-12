@@ -162,7 +162,8 @@ rosbag decompress my_experiment.bag</code></pre></div>
 </div>
 
 <h2>小结</h2>
-<p>rosbag 是 ROS 开发的"时光机"——录制一次、反复回放、离线调试。掌握 record/play/info/filter 四个命令加上 Python API，足以应对绝大多数数据采集和离线调试需求。</p>`,
+<p>rosbag 是 ROS 开发的"时光机"——录制一次、反复回放、离线调试。掌握 record/play/info/filter 四个命令加上 Python API，足以应对绝大多数数据采集和离线调试需求。</p>`
+},
 
 "ros-debugging": {
 t: "ROS 调试与问题排查",
@@ -346,7 +347,8 @@ gdb -p &lt;PID&gt;
 <div class="step"><h4>5. TF 工具排查坐标问题</h4><p>tf_echo 看变换、view_frames 看树结构，确认坐标系链路完整。</p></div>
 <div class="step"><h4>6. GDB/pdb 定位崩溃</h4><p>C++ 用 GDB 抓 core dump，Python 用 pdb 设断点，一步步走到崩溃点。</p></div>
 </div>
-<p>按照这个流程从外到内排查，基本能搞定绝大多数 ROS 调试问题。</p>`,
+<p>按照这个流程从外到内排查，基本能搞定绝大多数 ROS 调试问题。</p>`
+},
 
 "tf-transform": {
 t: "TF 坐标变换系统",
@@ -559,7 +561,8 @@ roswtf</code></pre></div>
 </ul>
 
 <h2>小结</h2>
-<p>TF 是 ROS 中最重要也最容易出错的子系统之一。核心记住三点：(1)TF 是一棵树，不能有环；(2)静态变换用 static_transform_publisher，动态变换用 TransformBroadcaster 周期发布；(3)查询变换用 tf2_ros.Buffer，记得捕获异常。在 RViz 中实时查看 TF 树是调试坐标问题的最快方法。</p>`,
+<p>TF 是 ROS 中最重要也最容易出错的子系统之一。核心记住三点：(1)TF 是一棵树，不能有环；(2)静态变换用 static_transform_publisher，动态变换用 TransformBroadcaster 周期发布；(3)查询变换用 tf2_ros.Buffer，记得捕获异常。在 RViz 中实时查看 TF 树是调试坐标问题的最快方法。</p>`
+},
 
 "urdf-xacro": {
 t: "URDF 机器人模型与 Xacro",
@@ -823,7 +826,8 @@ xdg-open my_robot.pdf  <span class="cm"># 查看link-joint结构图</span></code
 <span class="kw">&lt;/robot&gt;</span></code></pre></div>
 
 <h2>小结</h2>
-<p>URDF 定义机器人的 link 和 joint，Xacro 让 URDF 可编程(变量、宏、包含、条件)。实际项目中永远写 Xacro 而不是手写 URDF——xacro 命令一行转换。记得用 <code>check_urdf</code> 检查语法，在 RViz 中验证模型外观，最后再进 Gazebo 做物理仿真。</p>`,
+<p>URDF 定义机器人的 link 和 joint，Xacro 让 URDF 可编程(变量、宏、包含、条件)。实际项目中永远写 Xacro 而不是手写 URDF——xacro 命令一行转换。记得用 <code>check_urdf</code> 检查语法，在 RViz 中验证模型外观，最后再进 Gazebo 做物理仿真。</p>`
+},
 
 "slam-navigation": {
 t: "SLAM与导航入门",
@@ -1018,7 +1022,8 @@ roslaunch turtlebot3_navigation turtlebot3_navigation.launch \
 <div class="callout warn"><strong>常见导航问题</strong>：(1)机器人原地打转——通常是激光雷达 TF 没配好或里程计方向反了；(2)机器人一直绕路——inflation_radius 设太大或者 DWA 权重不合适；(3)撞墙——传感器话题没配到 costmap 或者 obstacle_range 太小；(4)AMCL 不收敛——初始位姿偏差太大或地图分辨率太低，重新设置初始位姿。</div>
 
 <h2>小结</h2>
-<p>ROS 导航栈的核心流程是：SLAM 建图 → 保存地图 → AMCL 定位 → move_base 规划。TF 树正确是前提，YAML 参数调优是关键。初次使用建议从 TurtleBot3 仿真开始，跑通完整流程后再迁移到自己的机器人上。实车调试时先低速运行，确认避障可靠再提速。</p>`,
+<p>ROS 导航栈的核心流程是：SLAM 建图 → 保存地图 → AMCL 定位 → move_base 规划。TF 树正确是前提，YAML 参数调优是关键。初次使用建议从 TurtleBot3 仿真开始，跑通完整流程后再迁移到自己的机器人上。实车调试时先低速运行，确认避障可靠再提速。</p>`
+},
 
 "cpp-for-ros-intro": {
 t: "C++ for ROS：从编译到节点",
@@ -1329,7 +1334,8 @@ ROS_INFO_STREAM(<span class="str">"位置: x="</span> << x << <span class="str">
 <li><code>source devel/setup.bash</code></li>
 <li><code>rosrun my_pkg node_name</code> 运行</li>
 </ol>
-<p>写 C++ 节点时不要怕报错，编译错误仔细看行号，链接错误通常是 CMakeLists.txt 漏加了库依赖。从简单的发布订阅开始，逐步添加类封装、服务、参数读取等功能。</p>`,
+<p>写 C++ 节点时不要怕报错，编译错误仔细看行号，链接错误通常是 CMakeLists.txt 漏加了库依赖。从简单的发布订阅开始，逐步添加类封装、服务、参数读取等功能。</p>`
+},
 
 "cpp-python-comparison": {
 t: "C++ vs Python：同一个温度传感器节点",
@@ -1549,7 +1555,8 @@ target_link_libraries(temp_monitor \${catkin_LIBRARIES})</code></pre></div>
 <div class="callout tip"><strong>建议学习路径</strong>：先用 Python 快速理解 ROS 概念(话题、服务、TF、launch)，再学 C++ 做性能敏感的模块。两个语言都掌握，根据场景选择最合适的工具。</div>
 
 <h2>小结</h2>
-<p>C++ 和 Python 各有优势，不是二选一的关系。Python 让你快速验证想法，C++ 让你榨干硬件性能。同一个温度传感器节点，Python 60行搞定，C++ 110行但性能更好。实际项目中两者混用是常态——用对的语言做对的事。</p>`,
+<p>C++ 和 Python 各有优势，不是二选一的关系。Python 让你快速验证想法，C++ 让你榨干硬件性能。同一个温度传感器节点，Python 60行搞定，C++ 110行但性能更好。实际项目中两者混用是常态——用对的语言做对的事。</p>`
+},
 
 "ros1-to-ros2": {
 t: "ROS1→ROS2 迁移指南",
